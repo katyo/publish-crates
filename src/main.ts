@@ -1,19 +1,50 @@
-import * as core from '@actions/core'
-import {wait} from './wait'
+import {getInput, setFailed, info} from '@actions/core'
+import {exec} from '@actions/exec'
+import {
+    manifestPath,
+    findPackages,
+    checkPackages,
+    sortPackages
+} from './package'
+import {awaitCrateVersion} from './crates'
 
 async function run(): Promise<void> {
-  try {
-    const ms: string = core.getInput('milliseconds')
-    core.debug(`Waiting ${ms} milliseconds ...`) // debug is only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
+    const path = getInput('path')
+    const args = getInput('args')
+        .split(/[\n\s]+/)
+        .filter(arg => arg.length > 0)
 
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
+    const verify = getInput('verify') !== 'false'
+    const dry_run = getInput('dry-run') === 'true'
 
-    core.setOutput('time', new Date().toTimeString())
-  } catch (error) {
-    core.setFailed(error.message)
-  }
+    if (!verify) {
+        args.unshift('--no-verify')
+    }
+    if (dry_run) {
+        args.unshift('--dry-run')
+    }
+
+    try {
+        info(`Find cargo packages at '${path}'`)
+        const packages = await findPackages(path)
+        await checkPackages(packages)
+        const sorted_packages = sortPackages(packages)
+        for (const package_name of sorted_packages) {
+            const package_info = packages[package_name]
+            if (!package_info.published) {
+                const manifest_path = manifestPath(package_info.path)
+                await exec('cargo', [
+                    'publish',
+                    '--manifest-path',
+                    manifest_path,
+                    ...args
+                ])
+                await awaitCrateVersion(package_name, package_info.version)
+            }
+        }
+    } catch (error) {
+        setFailed(error.message)
+    }
 }
 
 run()

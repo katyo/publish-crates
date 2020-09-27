@@ -1,27 +1,94 @@
-import {wait} from '../src/wait'
-import * as process from 'process'
-import * as cp from 'child_process'
-import * as path from 'path'
+import {getCrateVersions, awaitCrateVersion} from '../src/crates'
+import {findPackages, checkPackages, sortPackages} from '../src/package'
+import {join} from 'path'
+import {exec} from '@actions/exec'
+const pkg_dir = __dirname
 
-test('throws invalid number', async () => {
-  const input = parseInt('foo', 10)
-  await expect(wait(input)).rejects.toThrow('milliseconds not a number')
+test('find packages', async () => {
+    const packages = await findPackages(pkg_dir)
+
+    expect(Object.keys(packages).length).toBe(4)
+
+    const pkg_all = packages['pkg-all']
+    const pkg_sys = packages['pkg-sys']
+    const pkg_lib = packages['pkg-lib']
+    const pkg_bin = packages['pkg-bin']
+
+    expect(pkg_all.path).toBe(pkg_dir)
+    expect(pkg_all.version).toBe('0.1.0')
+    expect(Object.keys(pkg_all.dependencies).length).toBe(2)
+
+    expect(pkg_sys.path).toBe(join(pkg_dir, 'pkg-sys'))
+    expect(pkg_sys.version).toBe('0.1.0')
+    expect(Object.keys(pkg_sys.dependencies).length).toBe(0)
+
+    expect(pkg_lib.path).toBe(join(pkg_dir, 'pkg-lib'))
+    expect(pkg_lib.version).toBe('0.1.0')
+    expect(Object.keys(pkg_lib.dependencies).length).toBe(2)
+
+    expect(pkg_bin.path).toBe(join(pkg_dir, 'pkg-bin'))
+    expect(pkg_bin.version).toBe('0.1.0')
+    expect(Object.keys(pkg_bin.dependencies).length).toBe(2)
 })
 
-test('wait 500 ms', async () => {
-  const start = new Date()
-  await wait(500)
-  const end = new Date()
-  var delta = Math.abs(end.getTime() - start.getTime())
-  expect(delta).toBeGreaterThan(450)
+test('check packages', async () => {
+    const packages = await findPackages(pkg_dir)
+    await checkPackages(packages)
 })
 
-// shows how the runner will run a javascript action with env / stdout protocol
-test('test runs', () => {
-  process.env['INPUT_MILLISECONDS'] = '500'
-  const ip = path.join(__dirname, '..', 'lib', 'main.js')
-  const options: cp.ExecSyncOptions = {
-    env: process.env
-  }
-  console.log(cp.execSync(`node ${ip}`, options).toString())
+test('sort packages', async () => {
+    const packages = await findPackages(pkg_dir)
+    const sorted = sortPackages(packages)
+
+    expect(sorted).toEqual(['pkg-sys', 'pkg-lib', 'pkg-bin', 'pkg-all'])
 })
+
+test('get crate versions', async () => {
+    const versions = await getCrateVersions('serde')
+
+    expect(versions).toBeDefined()
+
+    if (versions) {
+        expect(versions.length).toBeGreaterThanOrEqual(200)
+
+        const version1 = versions.filter(
+            version_info => version_info.version == '1.0.0'
+        )[0]
+        expect(version1).toBeDefined()
+        expect(version1.version).toBe('1.0.0')
+        expect(version1.created).toEqual(
+            new Date('2017-04-20T15:26:44.055136+00:00')
+        )
+    }
+})
+
+test('await crate version', async () => {
+    await awaitCrateVersion('serde', '1.0.0', 10000)
+}, 15000)
+
+test('await crate version timeout', async () => {
+    try {
+        await awaitCrateVersion(
+            'undefined-unexpected-unknown-abcxyz',
+            '1.0.0',
+            10000
+        )
+    } catch (e) {
+        expect(e.message).toBe(
+            "Timeout '10000ms' reached when awaiting crate 'undefined-unexpected-unknown-abcxyz' version '1.0.0'"
+        )
+    }
+}, 15000)
+
+/*
+test('test run', async () => {
+  const main = join(__dirname, '..', 'lib', 'main.js')
+  const res = await exec('node', [main], { env: {
+    'INPUT_PATH': pkg_dir,
+    'INPUT_DRY-RUN': 'true',
+    'INPUT_ARGS': '--allow-dirty',
+    ...process.env
+  } });
+  expect(res).toBe(0)
+})
+*/

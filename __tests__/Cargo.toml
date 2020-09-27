@@ -1,0 +1,17 @@
+[workspace]
+members = [
+  "pkg-sys",
+  "pkg-lib",
+  "pkg-bin",
+]
+
+[package]
+name = "pkg-all"
+version = "0.1.0"
+
+[dependencies]
+pkg-lib = { version = "0.1.0", path = "./pkg-lib" }
+
+[dependencies.pkg-bin]
+version = "0.1.0"
+path = "./pkg-bin"

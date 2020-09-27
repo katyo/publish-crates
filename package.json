@@ -25,14 +25,19 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.2.5"
+    "@actions/core": "^1.2.6",
+    "@actions/exec": "^1.0.4",
+    "@actions/http-client": "^1.0.8",
+    "@iarna/toml": "^2.2.5",
+    "semver": "^7.3.2"
   },
   "devDependencies": {
-    "@types/jest": "^26.0.10",
-    "@types/node": "^14.10.0",
+    "@types/jest": "^26.0.14",
+    "@types/node": "^14.11.2",
+    "@types/semver": "^7.3.4",
     "@typescript-eslint/parser": "^3.10.1",
     "@vercel/ncc": "^0.23.0",
-    "eslint": "^7.8.1",
+    "eslint": "^7.9.0",
     "eslint-plugin-github": "^4.1.1",
     "eslint-plugin-jest": "^23.20.0",
     "jest": "^24.9.0",
@@ -40,6 +45,6 @@
     "js-yaml": "^3.14.0",
     "prettier": "2.1.1",
     "ts-jest": "^24.3.0",
-    "typescript": "^4.0.2"
+    "typescript": "^4.0.3"
   }
 }
