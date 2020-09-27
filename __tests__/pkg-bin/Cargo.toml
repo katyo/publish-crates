@@ -1,0 +1,7 @@
+[package]
+name = "pkg-bin"
+version = "0.1.0"
+
+[dependencies]
+pkg-lib = { version = "0.1.0", path = "../pkg-lib" }
+clap = "^2"
