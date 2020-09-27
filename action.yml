@@ -1,11 +1,19 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'publish crates'
+description: 'Publish Rust crates on crates.io'
+author: 'K. <kayo@illumium.org>'
+branding:
+  icon: box
+  color: orange
 inputs:
-  milliseconds: # change this
-    required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+  path:
+    description: 'Path to Rust crate or workspace'
+    default: '.'
+  args:
+    description: 'Extra arguments for cargo publish'
+    default: ''
+  dry-run:
+    description: 'Skip execution cargo publish'
+    default: 'false'
 runs:
   using: 'node12'
   main: 'dist/index.js'
