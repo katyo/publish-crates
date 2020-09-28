@@ -33,9 +33,11 @@ steps:
     - uses: actions/checkout@v2
     - uses: actions-rs/toolchain@v1
       with:
-        toolchain: stable
-        override: true
+          toolchain: stable
+          override: true
     - uses: katyo/publish-crates@v1
+      env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ```
 
 Advanced usage (`Cargo.toml` sits in 'packages' subdir, and you would like to skip verification and bypass real publishing):
@@ -45,11 +47,13 @@ steps:
     - uses: actions/checkout@v2
     - uses: actions-rs/toolchain@v1
       with:
-        toolchain: stable
-        override: true
+          toolchain: stable
+          override: true
     - uses: katyo/publish-crates@v1
       with:
-        path: './packages'
-        args: --no-verify
-        dry-run: true
+          path: './packages'
+          args: --no-verify
+          dry-run: true
+      env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ```
