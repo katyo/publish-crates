@@ -5,6 +5,9 @@ branding:
   icon: box
   color: orange
 inputs:
+  token:
+    description: 'Github API token'
+    default: ${{ github.token }}
   path:
     description: 'Path to Rust crate or workspace'
     default: '.'

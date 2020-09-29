@@ -2,6 +2,7 @@ import {join, normalize} from 'path'
 import {parse} from '@iarna/toml'
 import {satisfies} from 'semver'
 import {getCrateVersions} from './crates'
+import {GitHubHandle, lastCommitDate} from './github'
 import {stat, readFile} from './utils'
 
 interface RawManifest {
@@ -137,7 +138,10 @@ export async function findPackages(
     return packages
 }
 
-export async function checkPackages(packages: Packages): Promise<void> {
+export async function checkPackages(
+    packages: Packages,
+    github: GitHubHandle
+): Promise<void> {
     const tasks: Promise<void>[] = []
     for (const package_name in packages) {
         const package_info = packages[package_name]
@@ -146,14 +150,19 @@ export async function checkPackages(packages: Packages): Promise<void> {
             (async () => {
                 const published_versions = await getCrateVersions(package_name)
                 if (published_versions) {
-                    const mtime = published_versions
+                    const version_date = published_versions
                         .filter(({version}) => version === package_info.version)
                         .map(({created}) => created)[0]
-                    if (mtime) {
-                        // package with same version already published
-                        // check package contents modification time
-                        const stats = await stat(package_info.path)
-                        if (stats.mtime > mtime) {
+                    if (version_date) {
+                        // when package with same version already published
+                        // we need check package contents modification time
+                        const last_changes_date = await lastCommitDate(
+                            github,
+                            package_info.path
+                        )
+                        if (
+                            last_changes_date.getTime() > version_date.getTime()
+                        ) {
                             throw new Error(
                                 `It seems package '${package_name}' modified since '${package_info.version}' so new version should be published`
                             )

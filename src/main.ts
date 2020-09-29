@@ -7,22 +7,25 @@ import {
     sortPackages
 } from './package'
 import {awaitCrateVersion} from './crates'
+import {githubHandle} from './github'
 
 async function run(): Promise<void> {
+    const token = getInput('token')
     const path = getInput('path')
     const args = getInput('args')
         .split(/[\n\s]+/)
         .filter(arg => arg.length > 0)
     const dry_run = getInput('dry-run') === 'true'
+    const github = githubHandle(token)
 
     try {
         info(`Searching cargo packages at '${path}'`)
         const packages = await findPackages(path)
-        await checkPackages(packages)
         const package_names = Object.keys(packages).join(', ')
         info(`Found packages: ${package_names}`)
 
         info(`Checking packages consistency`)
+        await checkPackages(packages, github)
 
         info(`Sorting packages according dependencies`)
         const sorted_packages = sortPackages(packages)

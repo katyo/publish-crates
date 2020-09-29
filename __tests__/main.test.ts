@@ -1,5 +1,6 @@
 import {getCrateVersions, awaitCrateVersion} from '../src/crates'
 import {findPackages, checkPackages, sortPackages} from '../src/package'
+import {githubHandle, lastCommitDate} from '../src/github'
 import {join} from 'path'
 import {exec} from '@actions/exec'
 const pkg_dir = __dirname
@@ -33,7 +34,7 @@ test('find packages', async () => {
 
 test('check packages', async () => {
     const packages = await findPackages(pkg_dir)
-    await checkPackages(packages)
+    await checkPackages(packages, githubHandle())
 }, 10000)
 
 test('sort packages', async () => {
@@ -79,6 +80,12 @@ test('await crate version timeout', async () => {
         )
     }
 }, 15000)
+
+test('last commit date', async () => {
+    const github = githubHandle()
+    const date = await lastCommitDate(github, '__tests__/pkg-sys')
+    expect(date).toEqual(new Date('2020-09-27T20:43:58Z'))
+})
 
 /*
 test('test run', async () => {
