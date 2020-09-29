@@ -92,7 +92,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.lastCommitDate = exports.githubHandle = void 0;
 const github_1 = __webpack_require__(5438);
-function githubHandle(token = process.env.GITHUB_TOKEN || 'token secret123', context = github_1.context) {
+function githubHandle(token = process.env.GITHUB_TOKEN || '', context = github_1.context) {
     let github;
     return {
         get github() {
@@ -176,7 +176,12 @@ function run() {
         const args = core_1.getInput('args')
             .split(/[\n\s]+/)
             .filter(arg => arg.length > 0);
+        const registry_token = core_1.getInput('registry-token');
         const dry_run = core_1.getInput('dry-run') === 'true';
+        const env = Object.assign({}, process.env);
+        if (registry_token) {
+            env.CARGO_REGISTRY_TOKEN = registry_token;
+        }
         const github = github_1.githubHandle(token);
         try {
             core_1.info(`Searching cargo packages at '${path}'`);
@@ -197,13 +202,17 @@ function run() {
                         manifest_path,
                         ...args
                     ];
+                    const exec_opts = {
+                        env,
+                    };
                     if (dry_run) {
-                        core_1.warning(`Skipping exec 'cargo ${exec_args.join(' ')}' due to 'dry-run: true'`);
+                        const args_str = exec_args.join(' ');
+                        core_1.warning(`Skipping exec 'cargo ${args_str}' due to 'dry-run: true'`);
                         core_1.warning(`Skipping awaiting when '${package_name} ${package_info.version}' will be available due to 'dry-run: true'`);
                     }
                     else {
                         core_1.info(`Publishing package '${package_name}'`);
-                        yield exec_1.exec('cargo', exec_args);
+                        yield exec_1.exec('cargo', exec_args, exec_opts);
                         yield crates_1.awaitCrateVersion(package_name, package_info.version);
                         core_1.info(`Package '${package_name}' published successfully`);
                     }

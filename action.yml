@@ -14,6 +14,9 @@ inputs:
   args:
     description: 'Extra arguments for cargo publish'
     default: ''
+  registry-token:
+    description: 'Cargo registry token'
+    default: ''
   dry-run:
     description: 'Skip execution cargo publish'
     default: 'false'

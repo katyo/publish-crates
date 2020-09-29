@@ -1,5 +1,5 @@
 import {getInput, setFailed, info, warning} from '@actions/core'
-import {exec} from '@actions/exec'
+import {ExecOptions, exec} from '@actions/exec'
 import {
     manifestPath,
     findPackages,
@@ -9,13 +9,24 @@ import {
 import {awaitCrateVersion} from './crates'
 import {githubHandle} from './github'
 
+interface EnvVars {
+    [name: string]: string
+}
+
 async function run(): Promise<void> {
     const token = getInput('token')
     const path = getInput('path')
     const args = getInput('args')
         .split(/[\n\s]+/)
         .filter(arg => arg.length > 0)
+    const registry_token = getInput('registry-token')
     const dry_run = getInput('dry-run') === 'true'
+
+    const env: EnvVars = {...(process.env as EnvVars)}
+    if (registry_token) {
+        env.CARGO_REGISTRY_TOKEN = registry_token
+    }
+
     const github = githubHandle(token)
 
     try {
@@ -40,18 +51,20 @@ async function run(): Promise<void> {
                     manifest_path,
                     ...args
                 ]
+                const exec_opts: ExecOptions = {
+                    env
+                }
                 if (dry_run) {
+                    const args_str = exec_args.join(' ')
                     warning(
-                        `Skipping exec 'cargo ${exec_args.join(
-                            ' '
-                        )}' due to 'dry-run: true'`
+                        `Skipping exec 'cargo ${args_str}' due to 'dry-run: true'`
                     )
                     warning(
                         `Skipping awaiting when '${package_name} ${package_info.version}' will be available due to 'dry-run: true'`
                     )
                 } else {
                     info(`Publishing package '${package_name}'`)
-                    await exec('cargo', exec_args)
+                    await exec('cargo', exec_args, exec_opts)
                     await awaitCrateVersion(package_name, package_info.version)
                     info(`Package '${package_name}' published successfully`)
                 }
