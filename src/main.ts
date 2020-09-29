@@ -1,11 +1,6 @@
 import {getInput, setFailed, info, warning} from '@actions/core'
 import {ExecOptions, exec} from '@actions/exec'
-import {
-    manifestPath,
-    findPackages,
-    checkPackages,
-    sortPackages
-} from './package'
+import {findPackages, checkPackages, sortPackages} from './package'
 import {awaitCrateVersion} from './crates'
 import {githubHandle} from './github'
 
@@ -44,20 +39,15 @@ async function run(): Promise<void> {
         for (const package_name of sorted_packages) {
             const package_info = packages[package_name]
             if (!package_info.published) {
-                const manifest_path = manifestPath(package_info.path)
-                const exec_args = [
-                    'publish',
-                    '--manifest-path',
-                    manifest_path,
-                    ...args
-                ]
+                const exec_args = ['publish', ...args]
                 const exec_opts: ExecOptions = {
+                    cwd: package_info.path,
                     env
                 }
                 if (dry_run) {
                     const args_str = exec_args.join(' ')
                     warning(
-                        `Skipping exec 'cargo ${args_str}' due to 'dry-run: true'`
+                        `Skipping exec 'cargo ${args_str}' in '${package_info.path}' due to 'dry-run: true'`
                     )
                     warning(
                         `Skipping awaiting when '${package_name} ${package_info.version}' will be available due to 'dry-run: true'`
