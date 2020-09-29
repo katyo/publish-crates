@@ -16,12 +16,14 @@
 
 ## Unimplemented features
 
-- Supports different registries than [crates.io](https://crates.io/)
+- Support different registries than [crates.io](https://crates.io/)
 
 ## Inputs
 
+- `token` GitHub API token (`github.token` by default)
 - `path` Sets path to crate or workspace ('.' by default)
 - `args` Extra arguments for `cargo publish` command
+- `registry-token` Cargo registry token (not used when `dry-run: true`)
 - `dry-run` Set to 'true' to bypass exec `cargo publish`
 
 ## Usage examples
@@ -36,8 +38,8 @@ steps:
           toolchain: stable
           override: true
     - uses: katyo/publish-crates@v1
-      env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      with:
+          registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ```
 
 Advanced usage (`Cargo.toml` sits in 'packages' subdir, and you would like to skip verification and bypass real publishing):
@@ -54,6 +56,4 @@ steps:
           path: './packages'
           args: --no-verify
           dry-run: true
-      env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ```
