@@ -8,10 +8,10 @@
 - Reads manifests to get info about crates and dependencies
 - Checks versions of external dependencies to be exists in registry
 - Checks matching paths and versions of internal dependencies
-- Checks that no changes makes since last release when version of internal dependency is not changed
-- Skips publising of internal dependencies which does not updated
-- Publishes crates with `cargo publish` in right order according dependecies
-- Awaits when published crate will be awailable in registry before publishing crates which depends from it
+- Checks that no changes happened since published release when version of internal dependency is not changed
+- Skips publishing of internal dependencies which does not updated
+- Publishes updated crates in right order according dependecies
+- Awaits when published crate will be available in registry before publishing crates which depends from it
 - Works fine with workspaces without cyclic dependencies
 
 ## Unimplemented features
