@@ -179,6 +179,11 @@ export async function checkPackages(
             if (dependency.path) {
                 // internal dependency
                 const dependency_package = packages[dependency_name]
+                if (!dependency_package) {
+                    throw new Error(
+                        `Package '${package_name}' dependes from internal '${dependency_name}' which is not a workspace member. Listed workspace members only will be published.`
+                    )
+                }
                 const dependency_path = normalize(
                     join(package_info.path, dependency.path)
                 )
