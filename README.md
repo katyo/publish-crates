@@ -10,7 +10,7 @@
 - Checks matching paths and versions of internal dependencies
 - Checks that no changes happened since published release when version of internal dependency is not changed
 - Skips publishing of internal dependencies which does not updated
-- Publishes updated crates in right order according dependecies
+- Publishes updated crates in right order according to dependencies
 - Awaits when published crate will be available in registry before publishing crates which depends from it
 - Works fine with workspaces without cyclic dependencies
 
