@@ -56,6 +56,7 @@ async function run(): Promise<void> {
                     info(`Publishing package '${package_name}'`)
                     await exec('cargo', exec_args, exec_opts)
                     await awaitCrateVersion(package_name, package_info.version)
+                    await exec('cargo', ['update'], exec_opts)
                     info(`Package '${package_name}' published successfully`)
                 }
             }
