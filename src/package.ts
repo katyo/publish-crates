@@ -1,9 +1,10 @@
 import {join, normalize} from 'path'
-import {parse} from '@iarna/toml'
 import {satisfies} from 'semver'
-import {getCrateVersions} from './crates'
+import {parse} from '@iarna/toml'
+
 import {GitHubHandle, lastCommitDate} from './github'
-import {stat, readFile} from './utils'
+import {readFile, stat} from './utils'
+import {getCrateVersions} from './crates'
 
 interface RawManifest {
     workspace?: {

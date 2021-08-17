@@ -8,6 +8,14 @@
       "project": "./tsconfig.json"
     },
     "rules": {
+      "i18n-text/no-en": "off",
+      "sort-imports": ["error", {
+        "ignoreCase": false,
+        "ignoreDeclarationSort": true,
+        "ignoreMemberSort": false,
+        "memberSyntaxSortOrder": ["none", "all", "multiple", "single"],
+        "allowSeparatedGroups": false
+      }],
       "eslint-comments/no-use": "off",
       "import/no-namespace": "off",
       "no-unused-vars": "off",
