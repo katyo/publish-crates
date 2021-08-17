@@ -1,6 +1,7 @@
-import {getInput, setFailed, info, warning} from '@actions/core'
+import {getInput, info, setFailed, warning} from '@actions/core'
 import {ExecOptions, exec} from '@actions/exec'
-import {findPackages, checkPackages, sortPackages} from './package'
+
+import {checkPackages, findPackages, sortPackages} from './package'
 import {awaitCrateVersion} from './crates'
 import {githubHandle} from './github'
 

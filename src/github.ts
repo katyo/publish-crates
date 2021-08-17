@@ -1,4 +1,4 @@
-import {context as github_context, getOctokit} from '@actions/github'
+import {getOctokit, context as github_context} from '@actions/github'
 
 export type Context = typeof github_context
 export type GitHub = ReturnType<typeof getOctokit>
