@@ -57,7 +57,7 @@ function awaitCrateVersion(crate, version, timeout = 60000) {
     return __awaiter(this, void 0, void 0, function* () {
         const started = Date.now();
         for (;;) {
-            yield utils_1.delay(5000);
+            yield (0, utils_1.delay)(5000);
             const versions = yield getCrateVersions(crate);
             if (versions &&
                 versions.some(version_info => version_info.version === version)) {
@@ -96,7 +96,7 @@ function githubHandle(token = process.env.GITHUB_TOKEN || '', context = github_1
     return {
         get github() {
             if (!github) {
-                github = github_1.getOctokit(token, {});
+                github = (0, github_1.getOctokit)(token, {});
             }
             return github;
         },
@@ -170,27 +170,28 @@ const crates_1 = __nccwpck_require__(90);
 const github_1 = __nccwpck_require__(5928);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        const token = core_1.getInput('token');
-        const path = core_1.getInput('path');
-        const args = core_1.getInput('args')
+        const token = (0, core_1.getInput)('token');
+        const path = (0, core_1.getInput)('path');
+        const args = (0, core_1.getInput)('args')
             .split(/[\n\s]+/)
             .filter(arg => arg.length > 0);
-        const registry_token = core_1.getInput('registry-token');
-        const dry_run = core_1.getInput('dry-run') === 'true';
+        const registry_token = (0, core_1.getInput)('registry-token');
+        const dry_run = (0, core_1.getInput)('dry-run') === 'true';
+        const ignore_published = (0, core_1.getInput)('ignore-published');
         const env = Object.assign({}, process.env);
         if (registry_token) {
             env.CARGO_REGISTRY_TOKEN = registry_token;
         }
-        const github = github_1.githubHandle(token);
+        const github = (0, github_1.githubHandle)(token);
         try {
-            core_1.info(`Searching cargo packages at '${path}'`);
-            const packages = yield package_1.findPackages(path);
+            (0, core_1.info)(`Searching cargo packages at '${path}'`);
+            const packages = yield (0, package_1.findPackages)(path);
             const package_names = Object.keys(packages).join(', ');
-            core_1.info(`Found packages: ${package_names}`);
-            core_1.info(`Checking packages consistency`);
-            yield package_1.checkPackages(packages, github);
-            core_1.info(`Sorting packages according dependencies`);
-            const sorted_packages = package_1.sortPackages(packages);
+            (0, core_1.info)(`Found packages: ${package_names}`);
+            (0, core_1.info)(`Checking packages consistency`);
+            yield (0, package_1.checkPackages)(packages, github);
+            (0, core_1.info)(`Sorting packages according dependencies`);
+            const sorted_packages = (0, package_1.sortPackages)(packages);
             for (const package_name of sorted_packages) {
                 const package_info = packages[package_name];
                 if (!package_info.published) {
@@ -201,21 +202,34 @@ function run() {
                     };
                     if (dry_run) {
                         const args_str = exec_args.join(' ');
-                        core_1.warning(`Skipping exec 'cargo ${args_str}' in '${package_info.path}' due to 'dry-run: true'`);
-                        core_1.warning(`Skipping awaiting when '${package_name} ${package_info.version}' will be available due to 'dry-run: true'`);
+                        (0, core_1.warning)(`Skipping exec 'cargo ${args_str}' in '${package_info.path}' due to 'dry-run: true'`);
+                        (0, core_1.warning)(`Skipping awaiting when '${package_name} ${package_info.version}' will be available due to 'dry-run: true'`);
                     }
                     else {
-                        core_1.info(`Publishing package '${package_name}'`);
-                        yield exec_1.exec('cargo', exec_args, exec_opts);
-                        yield crates_1.awaitCrateVersion(package_name, package_info.version);
-                        yield exec_1.exec('cargo', ['update'], exec_opts);
-                        core_1.info(`Package '${package_name}' published successfully`);
+                        try {
+                            (0, core_1.info)(`Publishing package '${package_name}'`);
+                            yield (0, exec_1.exec)('cargo', exec_args, exec_opts);
+                            yield (0, crates_1.awaitCrateVersion)(package_name, package_info.version);
+                            yield (0, exec_1.exec)('cargo', ['update'], exec_opts);
+                            // wait for the new version again
+                            // to make sure that the new version is published
+                            yield (0, crates_1.awaitCrateVersion)(package_name, package_info.version);
+                            (0, core_1.info)(`Package '${package_name}' published successfully`);
+                        }
+                        catch (error) {
+                            if (ignore_published && error.message.includes(`crate version \`${package_info.path}\` is already uploaded`)) {
+                                (0, core_1.warning)(`Ignore error when '${package_name} ${package_info.version}' is already uploaded due to 'ignore-published: true'`);
+                            }
+                            else {
+                                (0, core_1.setFailed)(error.message);
+                            }
+                        }
                     }
                 }
             }
         }
         catch (error) {
-            core_1.setFailed(error.message);
+            (0, core_1.setFailed)(error.message);
         }
     });
 }
@@ -247,27 +261,27 @@ const github_1 = __nccwpck_require__(5928);
 const utils_1 = __nccwpck_require__(918);
 const crates_1 = __nccwpck_require__(90);
 function manifestPath(path) {
-    return path_1.join(path, 'Cargo.toml');
+    return (0, path_1.join)(path, 'Cargo.toml');
 }
 exports.manifestPath = manifestPath;
 function readManifest(path) {
     return __awaiter(this, void 0, void 0, function* () {
         const manifest_path = manifestPath(path);
         try {
-            yield utils_1.stat(manifest_path);
+            yield (0, utils_1.stat)(manifest_path);
         }
         catch (error) {
             throw new Error(`Manifest file '${manifest_path}' not found (${error.message})`);
         }
         let raw;
         try {
-            raw = yield utils_1.readFile(manifest_path, 'utf-8');
+            raw = yield (0, utils_1.readFile)(manifest_path, 'utf-8');
         }
         catch (error) {
             throw new Error(`Error when reading manifest file '${manifest_path}' (${error.message})`);
         }
         try {
-            return toml_1.parse(raw);
+            return (0, toml_1.parse)(raw);
         }
         catch (error) {
             throw new Error(`Error when parsing manifest file '${manifest_path}' (${error.message})`);
@@ -320,7 +334,7 @@ function findPackages(path, packages = {}) {
             if (Array.isArray(workspace.members)) {
                 const { members } = workspace;
                 for (const member of members) {
-                    tasks.push(findPackages(path_1.join(path, member), packages));
+                    tasks.push(findPackages((0, path_1.join)(path, member), packages));
                 }
             }
             yield Promise.all(tasks);
@@ -335,7 +349,7 @@ function checkPackages(packages, github) {
         for (const package_name in packages) {
             const package_info = packages[package_name];
             tasks.push((() => __awaiter(this, void 0, void 0, function* () {
-                const published_versions = yield crates_1.getCrateVersions(package_name);
+                const published_versions = yield (0, crates_1.getCrateVersions)(package_name);
                 if (published_versions) {
                     const version_date = published_versions
                         .filter(({ version }) => version === package_info.version)
@@ -343,7 +357,7 @@ function checkPackages(packages, github) {
                     if (version_date) {
                         // when package with same version already published
                         // we need check package contents modification time
-                        const last_changes_date = yield github_1.lastCommitDate(github, package_info.path);
+                        const last_changes_date = yield (0, github_1.lastCommitDate)(github, package_info.path);
                         if (last_changes_date.getTime() > version_date.getTime()) {
                             throw new Error(`It seems package '${package_name}' modified since '${package_info.version}' so new version should be published`);
                         }
@@ -360,7 +374,7 @@ function checkPackages(packages, github) {
                     if (!dependency_package) {
                         throw new Error(`Package '${package_name}' dependes from internal '${dependency_name}' which is not a workspace member. Listed workspace members only will be published.`);
                     }
-                    const dependency_path = path_1.normalize(path_1.join(package_info.path, dependency.path));
+                    const dependency_path = (0, path_1.normalize)((0, path_1.join)(package_info.path, dependency.path));
                     if (dependency_path !== dependency_package.path) {
                         throw new Error(`Package '${package_name}' depends from internal '${dependency_name}' with path '${dependency_path}' but actual path is '${dependency_package.path}'`);
                     }
@@ -371,11 +385,11 @@ function checkPackages(packages, github) {
                 else {
                     // external dependency
                     tasks.push((() => __awaiter(this, void 0, void 0, function* () {
-                        const versions = yield crates_1.getCrateVersions(dependency_name);
+                        const versions = yield (0, crates_1.getCrateVersions)(dependency_name);
                         if (!versions) {
                             throw new Error(`Package '${package_name}' depends from external '${dependency_name}' which does not published on crates.io`);
                         }
-                        if (!versions.some(({ version }) => semver_1.satisfies(version, dependency.version))) {
+                        if (!versions.some(({ version }) => (0, semver_1.satisfies)(version, dependency.version))) {
                             const versions_string = versions
                                 .map(({ version }) => version)
                                 .join(', ');
@@ -455,8 +469,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.delay = exports.readFile = exports.stat = void 0;
 const fs = __importStar(__nccwpck_require__(5747));
 const util_1 = __nccwpck_require__(1669);
-exports.stat = util_1.promisify(fs.stat);
-exports.readFile = util_1.promisify(fs.readFile);
+exports.stat = (0, util_1.promisify)(fs.stat);
+exports.readFile = (0, util_1.promisify)(fs.readFile);
 function delay(msecs) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise(resolve => {
@@ -602,7 +616,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getState = exports.saveState = exports.group = exports.endGroup = exports.startGroup = exports.info = exports.warning = exports.error = exports.debug = exports.isDebug = exports.setFailed = exports.setCommandEcho = exports.setOutput = exports.getBooleanInput = exports.getMultilineInput = exports.getInput = exports.addPath = exports.setSecret = exports.exportVariable = exports.ExitCode = void 0;
+exports.getState = exports.saveState = exports.group = exports.endGroup = exports.startGroup = exports.info = exports.notice = exports.warning = exports.error = exports.debug = exports.isDebug = exports.setFailed = exports.setCommandEcho = exports.setOutput = exports.getBooleanInput = exports.getMultilineInput = exports.getInput = exports.addPath = exports.setSecret = exports.exportVariable = exports.ExitCode = void 0;
 const command_1 = __nccwpck_require__(7351);
 const file_command_1 = __nccwpck_require__(717);
 const utils_1 = __nccwpck_require__(5278);
@@ -780,19 +794,30 @@ exports.debug = debug;
 /**
  * Adds an error issue
  * @param message error issue message. Errors will be converted to string via toString()
+ * @param properties optional properties to add to the annotation.
  */
-function error(message) {
-    command_1.issue('error', message instanceof Error ? message.toString() : message);
+function error(message, properties = {}) {
+    command_1.issueCommand('error', utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
 }
 exports.error = error;
 /**
- * Adds an warning issue
+ * Adds a warning issue
  * @param message warning issue message. Errors will be converted to string via toString()
+ * @param properties optional properties to add to the annotation.
  */
-function warning(message) {
-    command_1.issue('warning', message instanceof Error ? message.toString() : message);
+function warning(message, properties = {}) {
+    command_1.issueCommand('warning', utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
 }
 exports.warning = warning;
+/**
+ * Adds a notice issue
+ * @param message notice issue message. Errors will be converted to string via toString()
+ * @param properties optional properties to add to the annotation.
+ */
+function notice(message, properties = {}) {
+    command_1.issueCommand('notice', utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
+}
+exports.notice = notice;
 /**
  * Writes info to log with console.log.
  * @param message info message
@@ -926,7 +951,7 @@ exports.issueCommand = issueCommand;
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.toCommandValue = void 0;
+exports.toCommandProperties = exports.toCommandValue = void 0;
 /**
  * Sanitizes an input into a string so it can be passed into issueCommand safely
  * @param input input to sanitize into a string
@@ -941,6 +966,25 @@ function toCommandValue(input) {
     return JSON.stringify(input);
 }
 exports.toCommandValue = toCommandValue;
+/**
+ *
+ * @param annotationProperties
+ * @returns The command properties to send with the actual annotation command
+ * See IssueCommandProperties: https://github.com/actions/runner/blob/main/src/Runner.Worker/ActionCommandManager.cs#L646
+ */
+function toCommandProperties(annotationProperties) {
+    if (!Object.keys(annotationProperties).length) {
+        return {};
+    }
+    return {
+        title: annotationProperties.title,
+        line: annotationProperties.startLine,
+        endLine: annotationProperties.endLine,
+        col: annotationProperties.startColumn,
+        endColumn: annotationProperties.endColumn
+    };
+}
+exports.toCommandProperties = toCommandProperties;
 //# sourceMappingURL=utils.js.map
 
 /***/ }),
