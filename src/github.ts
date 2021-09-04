@@ -84,10 +84,25 @@ query lastCommitDate($owner: String!, $repo: String!, $ref: String!, $path: Stri
         )
     }
 
-    const {edges} = result.repository.ref.target.history
+    let edges: typeof result.repository.ref.target.history.edges
 
-    if (edges.length !== 1) {
-        throw new Error(`Unable to retrieve history for path '${path}'`)
+    try {
+        edges = result.repository.ref.target.history.edges
+    } catch (error) {
+        // TODO: remove debug out later
+        throw new Error(
+            `Unable to retrieve history for path '${path}' (res: ${JSON.stringify(
+                result
+            )})`
+        )
+    }
+
+    if (
+        typeof edges !== 'object' ||
+        typeof edges.length !== 'number' ||
+        edges.length < 1
+    ) {
+        throw new Error(`Missing edges in history for path '${path}'`)
     }
 
     return new Date(edges[0].node.committedDate)
