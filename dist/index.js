@@ -177,7 +177,7 @@ function run() {
             .filter(arg => arg.length > 0);
         const registry_token = (0, core_1.getInput)('registry-token');
         const dry_run = (0, core_1.getInput)('dry-run') === 'true';
-        const ignore_published = (0, core_1.getInput)('ignore-published');
+        const ignore_published = (0, core_1.getInput)('ignore-published') === 'true';
         const env = Object.assign({}, process.env);
         if (registry_token) {
             env.CARGO_REGISTRY_TOKEN = registry_token;

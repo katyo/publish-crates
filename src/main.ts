@@ -17,7 +17,7 @@ async function run(): Promise<void> {
         .filter(arg => arg.length > 0)
     const registry_token = getInput('registry-token')
     const dry_run = getInput('dry-run') === 'true'
-    const ignore_published = getInput('ignore-published')
+    const ignore_published = getInput('ignore-published') === 'true'
 
     const env: EnvVars = {...(process.env as EnvVars)}
     if (registry_token) {
