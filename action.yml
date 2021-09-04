@@ -20,6 +20,9 @@ inputs:
   dry-run:
     description: 'Skip execution cargo publish'
     default: 'false'
+  ignore-published:
+    description: 'Skip the error if version already uploaded'
+    default: 'false'
 runs:
   using: 'node12'
   main: 'dist/index.js'
