@@ -25,6 +25,7 @@
 - `args` Extra arguments for `cargo publish` command
 - `registry-token` Cargo registry token (not used when `dry-run: true`)
 - `dry-run` Set to 'true' to bypass exec `cargo publish`
+- `ignore-published` Set to 'true' to bypass the 'already uploaded' error of `cargo publish`
 
 ## Usage examples
 

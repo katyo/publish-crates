@@ -17,6 +17,7 @@ async function run(): Promise<void> {
         .filter(arg => arg.length > 0)
     const registry_token = getInput('registry-token')
     const dry_run = getInput('dry-run') === 'true'
+    const ignore_published = getInput('ignore-published')
 
     const env: EnvVars = {...(process.env as EnvVars)}
     if (registry_token) {
@@ -54,11 +55,24 @@ async function run(): Promise<void> {
                         `Skipping awaiting when '${package_name} ${package_info.version}' will be available due to 'dry-run: true'`
                     )
                 } else {
-                    info(`Publishing package '${package_name}'`)
-                    await exec('cargo', exec_args, exec_opts)
-                    await awaitCrateVersion(package_name, package_info.version)
-                    await exec('cargo', ['update'], exec_opts)
-                    info(`Package '${package_name}' published successfully`)
+                    try {
+                        info(`Publishing package '${package_name}'`)
+                        await exec('cargo', exec_args, exec_opts)
+                        await awaitCrateVersion(package_name, package_info.version)
+                        await exec('cargo', ['update'], exec_opts)
+                        // wait for the new version again
+                        // to make sure that the new version is published
+                        await awaitCrateVersion(package_name, package_info.version)
+                        info(`Package '${package_name}' published successfully`)
+                    } catch (error) {
+                        if (ignore_published && error.message.includes(`crate version \`${package_info.path}\` is already uploaded`)) {
+                            warning(
+                                `Ignore error when '${package_name} ${package_info.version}' is already uploaded due to 'ignore-published: true'`
+                            )
+                        } else {
+                            setFailed(error.message)
+                        }
+                    }
                 }
             }
         }
