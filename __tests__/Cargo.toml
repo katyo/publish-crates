@@ -8,6 +8,7 @@ members = [
 [package]
 name = "pkg-all"
 version = "0.1.0"
+exclude = ["main.test.ts"]
 
 [dependencies]
 pkg-lib = { version = "0.1.0", path = "./pkg-lib" }

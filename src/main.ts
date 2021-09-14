@@ -3,14 +3,12 @@ import {ExecOptions, exec} from '@actions/exec'
 
 import {checkPackages, findPackages, sortPackages} from './package'
 import {awaitCrateVersion} from './crates'
-import {githubHandle} from './github'
 
 interface EnvVars {
     [name: string]: string
 }
 
 async function run(): Promise<void> {
-    const token = getInput('token')
     const path = getInput('path')
     const args = getInput('args')
         .split(/[\n\s]+/)
@@ -23,8 +21,6 @@ async function run(): Promise<void> {
         env.CARGO_REGISTRY_TOKEN = registry_token
     }
 
-    const github = githubHandle(token)
-
     try {
         info(`Searching cargo packages at '${path}'`)
         const packages = await findPackages(path)
@@ -32,7 +28,7 @@ async function run(): Promise<void> {
         info(`Found packages: ${package_names}`)
 
         info(`Checking packages consistency`)
-        await checkPackages(packages, github)
+        await checkPackages(packages)
 
         info(`Sorting packages according dependencies`)
         const sorted_packages = sortPackages(packages)
@@ -63,7 +59,7 @@ async function run(): Promise<void> {
             }
         }
     } catch (error) {
-        setFailed(error.message)
+        setFailed(`${error}`)
     }
 }
 

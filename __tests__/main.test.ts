@@ -1,6 +1,7 @@
 import {getCrateVersions, awaitCrateVersion} from '../src/crates'
 import {findPackages, checkPackages, sortPackages} from '../src/package'
-import {githubHandle, lastCommitDate} from '../src/github'
+import {lastCommitDate} from '../src/git'
+import {cargoPackageFiles} from '../src/cargo'
 import {join} from 'path'
 import {exec} from '@actions/exec'
 const pkg_dir = __dirname
@@ -34,7 +35,7 @@ test('find packages', async () => {
 
 test('check packages', async () => {
     const packages = await findPackages(pkg_dir)
-    await checkPackages(packages, githubHandle())
+    await checkPackages(packages)
 }, 10000)
 
 test('sort packages', async () => {
@@ -75,16 +76,45 @@ test('await crate version timeout', async () => {
             10000
         )
     } catch (e) {
-        expect(e.message).toBe(
+        expect((e as Error).message).toBe(
             "Timeout '10000ms' reached when awaiting crate 'undefined-unexpected-unknown-abcxyz' version '1.0.0'"
         )
     }
 }, 15000)
 
+test('cargo package files', async () => {
+    const files1 = await cargoPackageFiles('__tests__/pkg-sys')
+    expect(files1).toEqual([
+        '.cargo_vcs_info.json',
+        'Cargo.toml',
+        'Cargo.toml.orig',
+        'src/lib.rs'
+    ])
+
+    const files2 = await cargoPackageFiles('__tests__/pkg-bin')
+    expect(files2).toEqual([
+        '.cargo_vcs_info.json',
+        'Cargo.lock',
+        'Cargo.toml',
+        'Cargo.toml.orig',
+        'src/main.rs'
+    ])
+
+    const files3 = await cargoPackageFiles('__tests__')
+    expect(files3).toEqual([
+        '.cargo_vcs_info.json',
+        'Cargo.toml',
+        'Cargo.toml.orig',
+        'src/lib.rs'
+    ])
+})
+
 test('last commit date', async () => {
-    const github = githubHandle()
-    const date = await lastCommitDate(github, '__tests__/pkg-sys')
-    expect(date).toEqual(new Date('2020-09-27T20:43:58Z'))
+    const date1 = await lastCommitDate('__tests__/pkg-sys')
+    expect(date1).toEqual(new Date('2020-09-27T18:09:03.000Z'))
+
+    const date2 = await lastCommitDate('__tests__/src/lib.rs')
+    expect(date2).toEqual(new Date('2020-09-27T18:09:03.000Z'))
 })
 
 /*

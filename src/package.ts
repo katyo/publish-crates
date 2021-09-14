@@ -2,9 +2,10 @@ import {join, normalize} from 'path'
 import {satisfies} from 'semver'
 import {parse} from '@iarna/toml'
 
-import {GitHubHandle, lastCommitDate} from './github'
+import {lastCommitDate} from './git'
 import {readFile, stat} from './utils'
 import {getCrateVersions} from './crates'
+import {cargoPackageFiles} from './cargo'
 
 interface RawManifest {
     workspace?: {
@@ -35,23 +36,21 @@ async function readManifest(path: string): Promise<RawManifest> {
     try {
         await stat(manifest_path)
     } catch (error) {
-        throw new Error(
-            `Manifest file '${manifest_path}' not found (${error.message})`
-        )
+        throw new Error(`Manifest file '${manifest_path}' not found (${error})`)
     }
     let raw
     try {
         raw = await readFile(manifest_path, 'utf-8')
     } catch (error) {
         throw new Error(
-            `Error when reading manifest file '${manifest_path}' (${error.message})`
+            `Error when reading manifest file '${manifest_path}' (${error})`
         )
     }
     try {
         return parse(raw) as RawManifest
     } catch (error) {
         throw new Error(
-            `Error when parsing manifest file '${manifest_path}' (${error.message})`
+            `Error when parsing manifest file '${manifest_path}' (${error})`
         )
     }
 }
@@ -60,6 +59,7 @@ export interface Package {
     path: string
     version: string
     dependencies: Dependencies
+    files: string[]
     published?: boolean
 }
 
@@ -116,10 +116,13 @@ export async function findPackages(
                 }
             }
 
+            const files = await cargoPackageFiles(path)
+
             packages[package_info.name] = {
                 path,
                 version: package_info.version,
-                dependencies
+                dependencies,
+                files
             }
         }
     }
@@ -139,10 +142,7 @@ export async function findPackages(
     return packages
 }
 
-export async function checkPackages(
-    packages: Packages,
-    github: GitHubHandle
-): Promise<void> {
+export async function checkPackages(packages: Packages): Promise<void> {
     const tasks: Promise<void>[] = []
     for (const package_name in packages) {
         const package_info = packages[package_name]
@@ -157,11 +157,29 @@ export async function checkPackages(
                     if (version_date) {
                         // when package with same version already published
                         // we need check package contents modification time
-                        const last_changes_date = await lastCommitDate(
-                            github,
-                            package_info.path
+                        const last_changes_date = (
+                            await Promise.all(
+                                package_info.files.map(async file => {
+                                    const path = join(package_info.path, file)
+                                    try {
+                                        await stat(path)
+                                        return await lastCommitDate(path)
+                                    } catch (e) {
+                                        return undefined
+                                    }
+                                })
+                            )
+                        ).reduce((last_date, date) =>
+                            !last_date
+                                ? date
+                                : !date
+                                ? last_date
+                                : date.getTime() > last_date.getTime()
+                                ? date
+                                : last_date
                         )
                         if (
+                            !last_changes_date ||
                             last_changes_date.getTime() > version_date.getTime()
                         ) {
                             throw new Error(
