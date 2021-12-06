@@ -75,7 +75,7 @@ test('await crate version timeout', async () => {
             10000
         )
     } catch (e) {
-        expect(e.message).toBe(
+        expect((e as Error).message).toBe(
             "Timeout '10000ms' reached when awaiting crate 'undefined-unexpected-unknown-abcxyz' version '1.0.0'"
         )
     }

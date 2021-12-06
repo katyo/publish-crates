@@ -80,7 +80,7 @@ query lastCommitDate($owner: String!, $repo: String!, $ref: String!, $path: Stri
         )
     } catch (error) {
         throw new Error(
-            `Unable to retrieve history from GitHub due to: ${error.message}`
+            `Unable to retrieve history from GitHub due to: ${error}`
         )
     }
 

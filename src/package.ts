@@ -36,7 +36,7 @@ async function readManifest(path: string): Promise<RawManifest> {
         await stat(manifest_path)
     } catch (error) {
         throw new Error(
-            `Manifest file '${manifest_path}' not found (${error.message})`
+            `Manifest file '${manifest_path}' not found (${error})`
         )
     }
     let raw
@@ -44,14 +44,14 @@ async function readManifest(path: string): Promise<RawManifest> {
         raw = await readFile(manifest_path, 'utf-8')
     } catch (error) {
         throw new Error(
-            `Error when reading manifest file '${manifest_path}' (${error.message})`
+            `Error when reading manifest file '${manifest_path}' (${error})`
         )
     }
     try {
         return parse(raw) as RawManifest
     } catch (error) {
         throw new Error(
-            `Error when parsing manifest file '${manifest_path}' (${error.message})`
+            `Error when parsing manifest file '${manifest_path}' (${error})`
         )
     }
 }
