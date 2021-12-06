@@ -25,7 +25,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.5.0",
+    "@actions/core": "^1.6.0",
     "@actions/exec": "^1.1.0",
     "@actions/github": "^5.0.0",
     "@actions/http-client": "^1.0.11",
@@ -33,20 +33,20 @@
     "semver": "^7.3.5"
   },
   "devDependencies": {
-    "@types/jest": "^27.0.1",
-    "@types/node": "^16.9.1",
-    "@types/semver": "^7.3.8",
-    "@typescript-eslint/parser": "^4.31.0",
-    "@vercel/ncc": "^0.31.0",
-    "eslint": "^7.32.0",
-    "eslint-plugin-github": "^4.3.0",
-    "eslint-plugin-jest": "^24.4.0",
-    "jest": "^27.1.1",
-    "jest-circus": "^27.2.0",
+    "@types/jest": "^27.0.3",
+    "@types/node": "^16.11.11",
+    "@types/semver": "^7.3.9",
+    "@typescript-eslint/parser": "^5.6.0",
+    "@vercel/ncc": "^0.33.0",
+    "eslint": "^8.4.0",
+    "eslint-plugin-github": "^4.3.5",
+    "eslint-plugin-jest": "^25.3.0",
+    "jest": "^27.4.3",
+    "jest-circus": "^27.4.2",
     "js-yaml": "^4.1.0",
-    "prettier": "2.4.0",
-    "ts-jest": "^27.0.5",
-    "typescript": "^4.4.3",
-    "webpack": "^5.52.1"
+    "prettier": "2.5.1",
+    "ts-jest": "^27.1.0",
+    "typescript": "^4.5.2",
+    "webpack": "^5.65.0"
   }
 }
