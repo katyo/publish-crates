@@ -35,9 +35,7 @@ async function getCrateInfo(crate: string): Promise<CrateInfo | undefined> {
     try {
         return JSON.parse(raw)
     } catch (error) {
-        throw new Error(
-            `Error when parsing response JSON: ${error}`
-        )
+        throw new Error(`Error when parsing response JSON: ${error}`)
     }
 }
 

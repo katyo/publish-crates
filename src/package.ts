@@ -35,9 +35,7 @@ async function readManifest(path: string): Promise<RawManifest> {
     try {
         await stat(manifest_path)
     } catch (error) {
-        throw new Error(
-            `Manifest file '${manifest_path}' not found (${error})`
-        )
+        throw new Error(`Manifest file '${manifest_path}' not found (${error})`)
     }
     let raw
     try {
