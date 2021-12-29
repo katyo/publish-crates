@@ -73,6 +73,7 @@ export async function awaitCrateVersion(
             versions &&
             versions.some(version_info => version_info.version === version)
         ) {
+            await delay(5000)
             return
         } else if (Date.now() - started > timeout) {
             throw new Error(
