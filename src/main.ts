@@ -1,4 +1,11 @@
-import {getInput, info, setFailed, warning} from '@actions/core'
+import {
+    error,
+    getBooleanInput,
+    getInput,
+    info,
+    setFailed,
+    warning
+} from '@actions/core'
 import {ExecOptions, exec} from '@actions/exec'
 
 import {checkPackages, findPackages, sortPackages} from './package'
@@ -16,7 +23,8 @@ async function run(): Promise<void> {
         .split(/[\n\s]+/)
         .filter(arg => arg.length > 0)
     const registry_token = getInput('registry-token')
-    const dry_run = getInput('dry-run') === 'true'
+    const dry_run = getBooleanInput('dry-run')
+    const check_repo = getBooleanInput('check-repo')
 
     const env: EnvVars = {...(process.env as EnvVars)}
     if (registry_token) {
@@ -32,9 +40,25 @@ async function run(): Promise<void> {
         info(`Found packages: ${package_names}`)
 
         info(`Checking packages consistency`)
-        await checkPackages(packages, github)
+        let package_errors = await checkPackages(packages, github)
 
-        info(`Sorting packages according dependencies`)
+        for (const {message} of package_errors) {
+            error(message)
+        }
+
+        if (!check_repo) {
+            package_errors = package_errors.filter(
+                ({kind}) => kind !== 'unable-to-get-commit-date'
+            )
+        }
+
+        if (package_errors.length > 0) {
+            throw new Error(
+                `${package_errors.length} packages consistency error(s) found`
+            )
+        }
+
+        info(`Sorting packages according to dependencies`)
         const sorted_packages = sortPackages(packages)
 
         for (const package_name of sorted_packages) {
@@ -62,8 +86,8 @@ async function run(): Promise<void> {
                 }
             }
         }
-    } catch (error) {
-        setFailed(`${error}`)
+    } catch (err) {
+        setFailed(`${err}`)
     }
 }
 

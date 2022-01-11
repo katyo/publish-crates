@@ -25,6 +25,19 @@
 - `args` Extra arguments for `cargo publish` command
 - `registry-token` Cargo registry token (not used when `dry-run: true`)
 - `dry-run` Set to 'true' to bypass exec `cargo publish`
+- `check-repo` Set to 'false' to bypass check local packages for modifications since last published version
+
+Each local package (workspace member) potentially may be modified since last published version without
+corresponding version bump. This situation is dangerous and should be prevented. In order to do it this
+action uses GitHub API to get date of latest commit which modified contents by path of corresponding package.
+This date compares with date of last published version of that package. When option `check-repo` set to `true`
+(which is by default) this action will throw error in case when last commit date cannot be determined.
+This happenned in case of detached refs (like pull requests). Usually you should never publish packages via
+pull-requests so you may simply disable this action for run in such cases (via `if` expression as example).
+When you want to run action (say with `dry-run` set to `true`) prevent failing you may simply set `check-repo`
+to `false` too.
+
+**NOTE**: You should avoid set both `check-repo` and `dry-run` to `false`.
 
 ## Usage examples
 
@@ -56,4 +69,19 @@ steps:
           path: './packages'
           args: --no-verify
           dry-run: true
+```
+
+Preventing failing on pull requests by disabling repository consistency check:
+
+```yaml
+steps:
+    - uses: actions/checkout@v2
+    - uses: actions-rs/toolchain@v1
+      with:
+          toolchain: stable
+          override: true
+    - uses: katyo/publish-crates@v1
+      with:
+          dry-run: true
+          check-repo: ${{ github.event_name == 'push' }}
 ```
