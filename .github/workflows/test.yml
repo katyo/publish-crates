@@ -41,6 +41,7 @@ jobs:
         with:
           path: __tests__
           dry-run: true
+          check-repo: ${{ github.event_name == 'push' }}
 
   publish: # publish dependency-free release with only self-contained dist directory
     if: github.repository == 'katyo/publish-crates' && github.event_name == 'push' && github.ref_name == 'main'

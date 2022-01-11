@@ -20,6 +20,9 @@ inputs:
   dry-run:
     description: 'Skip execution cargo publish'
     default: 'false'
+  check-repo:
+    description: 'Check repository consistency'
+    default: 'true'
 runs:
   using: 'node12'
   main: 'dist/index.js'
