@@ -11,9 +11,15 @@ import {ExecOptions, exec} from '@actions/exec'
 import {checkPackages, findPackages, sortPackages} from './package'
 import {awaitCrateVersion} from './crates'
 import {githubHandle} from './github'
+import {delay} from './utils'
 
 interface EnvVars {
     [name: string]: string
+}
+
+function getIntegerInput(name: string): number | undefined {
+    const value = parseInt(getInput(name))
+    return isNaN(value) ? undefined : value
 }
 
 async function run(): Promise<void> {
@@ -25,6 +31,7 @@ async function run(): Promise<void> {
     const registry_token = getInput('registry-token')
     const dry_run = getBooleanInput('dry-run')
     const check_repo = getBooleanInput('check-repo')
+    const publish_delay = getIntegerInput('publish-delay')
 
     const env: EnvVars = {...(process.env as EnvVars)}
     if (registry_token) {
@@ -81,6 +88,9 @@ async function run(): Promise<void> {
                     info(`Publishing package '${package_name}'`)
                     await exec('cargo', exec_args, exec_opts)
                     await awaitCrateVersion(package_name, package_info.version)
+                    if (publish_delay) {
+                        await delay(publish_delay)
+                    }
                     await exec('cargo', ['update'], exec_opts)
                     info(`Package '${package_name}' published successfully`)
                 }

@@ -26,6 +26,7 @@
 - `registry-token` Cargo registry token (not used when `dry-run: true`)
 - `dry-run` Set to 'true' to bypass exec `cargo publish`
 - `check-repo` Set to 'false' to bypass check local packages for modifications since last published version
+- `publish-delay` Optional delay in milliseconds applied after publishing each package before publishing others
 
 Each local package (workspace member) potentially may be modified since last published version without
 corresponding version bump. This situation is dangerous and should be prevented. In order to do it this
@@ -38,6 +39,10 @@ When you want to run action (say with `dry-run` set to `true`) prevent failing y
 to `false` too.
 
 **NOTE**: You should avoid set both `check-repo` and `dry-run` to `false`.
+
+Usually you don't needed set `publish-delay` because this action ever checks availability of published
+packages before publishing others but in some cases it may help work around __crates.io__ inconsistency
+problems.
 
 ## Usage examples
 

@@ -13,13 +13,16 @@ interface CrateInfo {
 
 interface VersionInfo {
     crate: string
+    crate_size: number
     num: string
     created_at: string
     updated_at: string
+    dl_path: string
 }
 
+const client = new HttpClient('publish-crates')
+
 async function getCrateInfo(crate: string): Promise<CrateInfo | undefined> {
-    const client = new HttpClient('publish-crates')
     const url = `https://crates.io/api/v1/crates/${crate}`
     const res = await client.get(url)
     if (res.message.statusCode === HttpCodes.NotFound) {
@@ -42,6 +45,7 @@ async function getCrateInfo(crate: string): Promise<CrateInfo | undefined> {
 export interface Version {
     version: string
     created: Date
+    dl_path: string
 }
 
 export async function getCrateVersions(
@@ -52,12 +56,21 @@ export async function getCrateVersions(
         return
     }
     return data.versions.map(
-        ({num, created_at}) =>
+        ({num, created_at, dl_path}) =>
             ({
                 version: num,
-                created: new Date(created_at)
+                created: new Date(created_at),
+                dl_path
             } as Version)
     )
+}
+
+export async function checkCrateAvailability(
+    dl_path: string
+): Promise<boolean> {
+    const url = `https://crates.io${dl_path}`
+    const res = await client.head(url)
+    return res.message.statusCode === HttpCodes.OK
 }
 
 export async function awaitCrateVersion(
@@ -66,6 +79,7 @@ export async function awaitCrateVersion(
     timeout = 60000
 ): Promise<void> {
     const started = Date.now()
+    let dl_path: string
     for (;;) {
         await delay(5000)
         const versions = await getCrateVersions(crate)
@@ -73,11 +87,26 @@ export async function awaitCrateVersion(
             versions &&
             versions.some(version_info => version_info.version === version)
         ) {
-            return
-        } else if (Date.now() - started > timeout) {
+            dl_path = versions.filter(
+                version_info => version_info.version === version
+            )[0].dl_path
+            break
+        }
+        if (Date.now() - started > timeout) {
             throw new Error(
-                `Timeout '${timeout}ms' reached when awaiting crate '${crate}' version '${version}'`
+                `Timeout '${timeout}ms' reached when awaiting crate '${crate}' version '${version}' to be published`
             )
         }
+    }
+    for (;;) {
+        if (await checkCrateAvailability(dl_path)) {
+            break
+        }
+        if (Date.now() - started > timeout) {
+            throw new Error(
+                `Timeout '${timeout}ms' reached when awaiting crate '${crate}' version '${version}' to be downloadable`
+            )
+        }
+        await delay(1000)
     }
 }
