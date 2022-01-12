@@ -1,6 +1,7 @@
-import {join, normalize} from 'path'
+import {dirname, join, normalize, relative, resolve} from 'path'
 import {satisfies} from 'semver'
 import {parse} from '@iarna/toml'
+import {create as glob} from '@actions/glob'
 
 import {GitHubHandle, lastCommitDate} from './github'
 import {readFile, stat} from './utils'
@@ -26,31 +27,24 @@ interface RawManifest {
     }
 }
 
-export function manifestPath(path: string): string {
-    return join(path, 'Cargo.toml')
-}
+const manifest_filename = 'Cargo.toml'
 
 async function readManifest(path: string): Promise<RawManifest> {
-    const manifest_path = manifestPath(path)
     try {
-        await stat(manifest_path)
+        await stat(path)
     } catch (error) {
-        throw new Error(`Manifest file '${manifest_path}' not found (${error})`)
+        throw new Error(`Manifest file '${path}' not found (${error})`)
     }
     let raw
     try {
-        raw = await readFile(manifest_path, 'utf-8')
+        raw = await readFile(path, 'utf-8')
     } catch (error) {
-        throw new Error(
-            `Error when reading manifest file '${manifest_path}' (${error})`
-        )
+        throw new Error(`Error when reading manifest file '${path}' (${error})`)
     }
     try {
         return parse(raw) as RawManifest
     } catch (error) {
-        throw new Error(
-            `Error when parsing manifest file '${manifest_path}' (${error})`
-        )
+        throw new Error(`Error when parsing manifest file '${path}' (${error})`)
     }
 }
 
@@ -75,10 +69,15 @@ export interface Packages {
 }
 
 export async function findPackages(
-    path: string,
+    base_path: string,
     packages: Packages = {}
 ): Promise<Packages> {
-    const manifest = await readManifest(path)
+    const manifest_path = base_path.endsWith(manifest_filename)
+        ? base_path
+        : join(base_path, manifest_filename)
+    const path = dirname(manifest_path)
+
+    const manifest = await readManifest(manifest_path)
 
     if (typeof manifest.package === 'object') {
         const {package: package_info} = manifest
@@ -126,9 +125,20 @@ export async function findPackages(
         const tasks: Promise<Packages>[] = []
         const {workspace} = manifest
         if (Array.isArray(workspace.members)) {
-            const {members} = workspace
-            for (const member of members) {
-                tasks.push(findPackages(join(path, member), packages))
+            const globber = await glob(
+                workspace.members
+                    .map(member => join(path, member, manifest_filename))
+                    .join('\n')
+            )
+            const members_paths = await globber.glob()
+            const parent_path = resolve(path)
+            for (const member_path of members_paths) {
+                tasks.push(
+                    findPackages(
+                        join(path, relative(parent_path, member_path)),
+                        packages
+                    )
+                )
             }
         }
         await Promise.all(tasks)
@@ -217,7 +227,9 @@ export async function checkPackages(
                         message: `Package '${package_name}' depends from internal '${dependency_name}' with path '${dependency_path}' but actual path is '${dependency_package.path}'`
                     })
                 }
-                if (!satisfies(dependency_package.version, dependency.version)) {
+                if (
+                    !satisfies(dependency_package.version, dependency.version)
+                ) {
                     errors.push({
                         kind: 'mismatch-intern-dep-version',
                         message: `Package '${package_name}' depends from internal '${dependency_name}' with version '${dependency.version}' but actual version is '${dependency_package.version}'`
@@ -234,8 +246,11 @@ export async function checkPackages(
                                 message: `Package '${package_name}' depends from external '${dependency_name}' which does not published on crates.io`
                             })
                         } else {
-                            if (!versions.some(({version}) =>
-                                satisfies(version, dependency.version))) {
+                            if (
+                                !versions.some(({version}) =>
+                                    satisfies(version, dependency.version)
+                                )
+                            ) {
                                 const versions_string = versions
                                     .map(({version}) => version)
                                     .join(', ')
