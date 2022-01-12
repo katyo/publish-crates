@@ -217,7 +217,7 @@ export async function checkPackages(
                         message: `Package '${package_name}' depends from internal '${dependency_name}' with path '${dependency_path}' but actual path is '${dependency_package.path}'`
                     })
                 }
-                if (dependency.version !== dependency_package.version) {
+                if (!satisfies(dependency_package.version, dependency.version)) {
                     errors.push({
                         kind: 'mismatch-intern-dep-version',
                         message: `Package '${package_name}' depends from internal '${dependency_name}' with version '${dependency.version}' but actual version is '${dependency_package.version}'`
@@ -234,11 +234,8 @@ export async function checkPackages(
                                 message: `Package '${package_name}' depends from external '${dependency_name}' which does not published on crates.io`
                             })
                         } else {
-                            if (
-                                !versions.some(({version}) =>
-                                    satisfies(version, dependency.version)
-                                )
-                            ) {
+                            if (!versions.some(({version}) =>
+                                satisfies(version, dependency.version))) {
                                 const versions_string = versions
                                     .map(({version}) => version)
                                     .join(', ')
