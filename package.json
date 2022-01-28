@@ -1,6 +1,6 @@
 {
   "name": "publish-crates",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "GitHub action to get easy publishing of Rust crates",
   "main": "lib/main.js",

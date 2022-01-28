@@ -5,3 +5,7 @@ version = "0.1.0"
 [dependencies]
 pkg-lib = { version = "0.1.0", path = "../pkg-lib" }
 clap = "^2"
+
+[dev-dependencies.pkg-dev]
+version = "0.1.0"
+path = "../pkg-dev"
