@@ -1,8 +1,10 @@
 [workspace]
 members = [
   "pkg-sys",
+  "pkg-build",
   "pkg-lib",
   "pkg-bin",
+  'pkg-dev',
 ]
 
 [package]

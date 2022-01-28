@@ -8,7 +8,7 @@ const pkg_dir = __dirname
 test('find packages', async () => {
     const packages = await findPackages(pkg_dir)
 
-    expect(Object.keys(packages).length).toBe(4)
+    expect(Object.keys(packages).length).toBe(6)
 
     const pkg_all = packages['pkg-all']
     const pkg_sys = packages['pkg-sys']
@@ -29,7 +29,7 @@ test('find packages', async () => {
 
     expect(pkg_bin.path).toBe(join(pkg_dir, 'pkg-bin'))
     expect(pkg_bin.version).toBe('0.1.0')
-    expect(Object.keys(pkg_bin.dependencies).length).toBe(2)
+    expect(Object.keys(pkg_bin.dependencies).length).toBe(3)
 })
 
 test('check packages', async () => {
@@ -41,7 +41,14 @@ test('sort packages', async () => {
     const packages = await findPackages(pkg_dir)
     const sorted = sortPackages(packages)
 
-    expect(sorted).toEqual(['pkg-sys', 'pkg-lib', 'pkg-bin', 'pkg-all'])
+    expect(sorted).toEqual([
+        'pkg-sys',
+        'pkg-lib',
+        'pkg-build',
+        'pkg-dev',
+        'pkg-bin',
+        'pkg-all'
+    ])
 })
 
 test('get crate versions', async () => {
