@@ -94,10 +94,10 @@ export async function findPackages(
         if (package_info.publish !== false) {
             const dependencies: Dependencies = {}
 
-            for (const manifest_dependencies of [
-                manifest.dependencies,
-                manifest['dev-dependencies'],
-                manifest['build-dependencies']
+            for (const [dependency_type, manifest_dependencies] of [
+                ['normal', manifest.dependencies],
+                ['dev', manifest['dev-dependencies']],
+                ['build', manifest['build-dependencies']]
             ]) {
                 if (typeof manifest_dependencies === 'object') {
                     for (const name in manifest_dependencies) {
@@ -105,18 +105,33 @@ export async function findPackages(
                         if (typeof dependency === 'string') {
                             dependencies[name] = {version: dependency}
                         } else if (typeof dependency == 'object') {
-                            if (!dependency.version) {
+                            if (
+                                !dependency.version &&
+                                // normal and build deps require a version
+                                dependency_type !== 'dev'
+                            ) {
                                 throw new Error(
                                     `Missing dependency '${name}' version field`
                                 )
-                            }
-                            const package_name =
-                                typeof dependency.package === 'string'
-                                    ? dependency.package
-                                    : name
-                            dependencies[package_name] = {
-                                version: dependency.version,
-                                path: dependency.path
+                            } else if (
+                                // throw an error if there is no path or version on dev-dependencies
+                                dependency_type === 'dev' &&
+                                !dependency.version &&
+                                !dependency.path
+                            ) {
+                                throw new Error(
+                                    `Missing dependency '${name}' version field`
+                                )
+                            } else if (dependency.version) {
+                                // only include package in dependency graph if version is specified
+                                const package_name =
+                                    typeof dependency.package === 'string'
+                                        ? dependency.package
+                                        : name
+                                dependencies[package_name] = {
+                                    version: dependency.version,
+                                    path: dependency.path
+                                }
                             }
                         }
                     }
@@ -303,6 +318,8 @@ export function sortPackages(packages: Packages): string[] {
             }
             return true
         })
+        // This should exclude validation of dev-dependencies once
+        // cyclic dev-dependencies are allowed: https://github.com/rust-lang/cargo/issues/4242
         if (new_left_names.length === left_names.length) {
             const left_names_str = left_names.join(', ')
             throw new Error(

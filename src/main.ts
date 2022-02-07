@@ -32,6 +32,7 @@ async function run(): Promise<void> {
     const dry_run = getBooleanInput('dry-run')
     const check_repo = getBooleanInput('check-repo')
     const publish_delay = getIntegerInput('publish-delay')
+    const no_verify = getBooleanInput('no-verify')
 
     const env: EnvVars = {...(process.env as EnvVars)}
     if (registry_token) {
@@ -65,13 +66,21 @@ async function run(): Promise<void> {
             )
         }
 
-        info(`Sorting packages according to dependencies`)
-        const sorted_packages = sortPackages(packages)
+        let sorted_packages
+        if (!no_verify) {
+            info(`Sorting packages according to dependencies`)
+            sorted_packages = sortPackages(packages)
+        } else {
+            sorted_packages = Object.keys(packages)
+        }
 
         for (const package_name of sorted_packages) {
             const package_info = packages[package_name]
             if (!package_info.published) {
                 const exec_args = ['publish', ...args]
+                if (no_verify) {
+                    exec_args.push('--no-verify')
+                }
                 const exec_opts: ExecOptions = {
                     cwd: package_info.path,
                     env
