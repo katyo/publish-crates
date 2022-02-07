@@ -100,3 +100,5 @@ lib/**/*
 
 # Ignore cargo target
 __tests__/target/*
+# Ignore cargo lock
+__tests__/Cargo.lock
