@@ -12,7 +12,7 @@
 - Skips publishing of internal dependencies which does not updated
 - Publishes updated crates in right order according to dependencies
 - Awaits when published crate will be available in registry before publishing crates which depends from it
-- Works fine with workspaces without cyclic dependencies
+- Works fine in workspaces without cyclic dependencies
 
 ## Unimplemented features
 
@@ -27,6 +27,7 @@
 - `dry-run` Set to 'true' to bypass exec `cargo publish`
 - `check-repo` Set to 'false' to bypass check local packages for modifications since last published version
 - `publish-delay` Optional delay in milliseconds applied after publishing each package before publishing others
+- `no-verify` Set to `true` to bypass cyclic dependency detection and cargo packaging verification (uses `--no-verify`)
 
 Each local package (workspace member) potentially may be modified since last published version without
 corresponding version bump. This situation is dangerous and should be prevented. In order to do it this
@@ -38,9 +39,9 @@ pull-requests so you may simply disable this action for run in such cases (via `
 When you want to run action (say with `dry-run` set to `true`) prevent failing you may simply set `check-repo`
 to `false` too.
 
-**NOTE**: You should avoid set both `check-repo` and `dry-run` to `false`.
+**NOTE**: You should avoid setting both `check-repo` and `dry-run` to `false`.
 
-Usually you don't needed set `publish-delay` because this action ever checks availability of published
+Usually you don't need to set `publish-delay` because this action never checks availability of published
 packages before publishing others but in some cases it may help work around __crates.io__ inconsistency
 problems.
 
