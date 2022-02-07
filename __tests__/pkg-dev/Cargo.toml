@@ -5,6 +5,7 @@ version = "0.1.0"
 [dependencies]
 lazy_static = "1.0"
 
+# test that local cyclic dev-deps are allowed using paths
 [dev-dependencies.pkg-lib]
 path = "../pkg-lib"
 
