@@ -24,8 +24,8 @@
 - `path` Sets path to crate or workspace ('.' by default)
 - `args` Extra arguments for `cargo publish` command
 - `registry-token` Cargo registry token (not used when `dry-run: true`)
-- `dry-run` Set to 'true' to bypass exec `cargo publish`
-- `check-repo` Set to 'false' to bypass check local packages for modifications since last published version
+- `dry-run` Set to `true` to bypass exec `cargo publish`
+- `check-repo` Set to `false` to bypass check local packages for modifications since last published version
 - `publish-delay` Optional delay in milliseconds applied after publishing each package before publishing others
 - `no-verify` Set to `true` to bypass cyclic dependency detection and cargo packaging verification (uses `--no-verify`)
 
@@ -41,8 +41,8 @@ to `false` too.
 
 **NOTE**: You should avoid setting both `check-repo` and `dry-run` to `false`.
 
-Usually you don't need to set `publish-delay` because this action never checks availability of published
-packages before publishing others but in some cases it may help work around __crates.io__ inconsistency
+Usually you don't need to set `publish-delay` because this action check availability of previously published
+packages before publishing other but in some cases it may help work around __crates.io__ inconsistency
 problems.
 
 ## Usage examples
