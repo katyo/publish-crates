@@ -26,6 +26,9 @@ inputs:
   publish-delay:
     description: 'Extra post publish delay (milliseconds)'
     default: 0
+  no-verify:
+    description: 'Disable cargo publish validation and cyclic dependency checks'
+    default: 'false'
 runs:
   using: 'node12'
   main: 'dist/index.js'
