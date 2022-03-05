@@ -33,8 +33,8 @@ async function run(): Promise<void> {
     const check_repo = getBooleanInput('check-repo')
     const publish_delay = getIntegerInput('publish-delay')
     const no_verify = getBooleanInput('no-verify')
-    const pass_on_no_package_update = getBooleanInput(
-        'pass-on-no-package-update'
+    const pass_on_no_unpublished_changes = getBooleanInput(
+        'pass-on-no-unpublished-changes'
     )
 
     const env: EnvVars = {...(process.env as EnvVars)}
@@ -74,7 +74,7 @@ async function run(): Promise<void> {
 
             if (
                 has_unpublished_changes_error &&
-                pass_on_no_package_update &&
+                pass_on_no_unpublished_changes &&
                 !has_other_errors
             ) {
                 info(has_unpublished_changes_error.message)
