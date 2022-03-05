@@ -65,7 +65,7 @@ async function run(): Promise<void> {
 
         if (package_errors.length > 0) {
             const has_unpublished_changes_error = package_errors.find(
-                ({kind}) => kind !== 'has-unpublished-changes'
+                ({kind}) => kind === 'has-unpublished-changes'
             )
             const has_other_errors =
                 package_errors.filter(
