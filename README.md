@@ -28,6 +28,7 @@
 - `check-repo` Set to `false` to bypass check local packages for modifications since last published version
 - `publish-delay` Optional delay in milliseconds applied after publishing each package before publishing others
 - `no-verify` Set to `true` to bypass cyclic dependency detection and cargo packaging verification (uses `--no-verify`)
+- `pass-on-no-package-update` Set to `true` to exit the workflow gracefully if package does not have a new version to publish
 
 Each local package (workspace member) potentially may be modified since last published version without
 corresponding version bump. This situation is dangerous and should be prevented. In order to do it this
@@ -90,4 +91,19 @@ steps:
       with:
           dry-run: true
           check-repo: ${{ github.event_name == 'push' }}
+```
+
+Prevent failing when there is no new version to publish:
+
+```yaml
+steps:
+    - uses: actions/checkout@v2
+    - uses: actions-rs/toolchain@v1
+      with:
+          toolchain: stable
+          override: true
+    - uses: katyo/publish-crates@v1
+      with:
+          registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          pass-on-no-package-update: true
 ```

@@ -33,6 +33,9 @@ async function run(): Promise<void> {
     const check_repo = getBooleanInput('check-repo')
     const publish_delay = getIntegerInput('publish-delay')
     const no_verify = getBooleanInput('no-verify')
+    const pass_on_no_package_update = getBooleanInput(
+        'pass-on-no-package-update'
+    )
 
     const env: EnvVars = {...(process.env as EnvVars)}
     if (registry_token) {
@@ -61,6 +64,23 @@ async function run(): Promise<void> {
         }
 
         if (package_errors.length > 0) {
+            const has_unpublished_changes_error = package_errors.find(
+                ({kind}) => kind !== 'has-unpublished-changes'
+            )
+            const has_other_errors =
+                package_errors.filter(
+                    ({kind}) => kind !== 'has-unpublished-changes'
+                ).length > 0
+
+            if (
+                has_unpublished_changes_error &&
+                pass_on_no_package_update &&
+                !has_other_errors
+            ) {
+                info(has_unpublished_changes_error.message)
+                return
+            }
+
             throw new Error(
                 `${package_errors.length} packages consistency error(s) found`
             )
