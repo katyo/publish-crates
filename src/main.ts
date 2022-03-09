@@ -34,7 +34,7 @@ async function run(): Promise<void> {
     const publish_delay = getIntegerInput('publish-delay')
     const no_verify = getBooleanInput('no-verify')
     const pass_on_no_unpublished_changes = getBooleanInput(
-        'pass-on-no-unpublished-changes'
+        'ignore-unpublished-changes'
     )
 
     const env: EnvVars = {...(process.env as EnvVars)}

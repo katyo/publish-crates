@@ -28,7 +28,7 @@
 - `check-repo` Set to `false` to bypass check local packages for modifications since last published version
 - `publish-delay` Optional delay in milliseconds applied after publishing each package before publishing others
 - `no-verify` Set to `true` to bypass cyclic dependency detection and cargo packaging verification (uses `--no-verify`)
-- `pass-on-no-unpublished-changes` Set to `true` to exit the workflow gracefully if package does not have a new version to publish
+- `ignore-unpublished-changes` Set to `true` to exit the workflow gracefully if package does not have a new version to publish
 
 Each local package (workspace member) potentially may be modified since last published version without
 corresponding version bump. This situation is dangerous and should be prevented. In order to do it this
@@ -105,5 +105,5 @@ steps:
     - uses: katyo/publish-crates@v1
       with:
           registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-          pass-on-no-unpublished-changes: true
+          ignore-unpublished-changes: true
 ```

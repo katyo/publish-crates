@@ -29,7 +29,7 @@ inputs:
   no-verify:
     description: 'Disable cargo publish validation and cyclic dependency checks'
     default: 'false'
-  pass-on-no-unpublished-changes:
+  ignore-unpublished-changes:
     description: 'Exit the workflow gracefully if package does not have a new version to publish'
     default: 'false'
 runs:
