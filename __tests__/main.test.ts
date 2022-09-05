@@ -1,6 +1,7 @@
 import {getCrateVersions, awaitCrateVersion} from '../src/crates'
 import {findPackages, checkPackages, sortPackages} from '../src/package'
 import {githubHandle, lastCommitDate} from '../src/github'
+import {semver} from '../src/utils'
 import {join} from 'path'
 import {exec} from '@actions/exec'
 const pkg_dir = __dirname
@@ -111,3 +112,11 @@ test('test run', async () => {
   expect(res).toBe(0)
 })
 */
+
+test('test semver', () => {
+    expect(
+        '4.0.1, 3.0.1, 3.0.0, 2.0.2, 1.0.1'
+            .split(', ')
+            .some(version => semver(version, '>= 2, < 5'))
+    ).toBe(true)
+})

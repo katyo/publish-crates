@@ -1,10 +1,9 @@
 import {dirname, join, normalize, relative, resolve} from 'path'
-import {satisfies} from 'semver'
 import {parse} from '@iarna/toml'
 import {create as glob} from '@actions/glob'
 
 import {GitHubHandle, lastCommitDate} from './github'
-import {readFile, stat} from './utils'
+import {readFile, semver, stat} from './utils'
 import {getCrateVersions} from './crates'
 
 interface RawDependencies {
@@ -252,9 +251,7 @@ export async function checkPackages(
                         message: `Package '${package_name}' depends from internal '${dependency_name}' with path '${dependency_path}' but actual path is '${dependency_package.path}'`
                     })
                 }
-                if (
-                    !satisfies(dependency_package.version, dependency.version)
-                ) {
+                if (!semver(dependency_package.version, dependency.version)) {
                     errors.push({
                         kind: 'mismatch-intern-dep-version',
                         message: `Package '${package_name}' depends from internal '${dependency_name}' with version '${dependency.version}' but actual version is '${dependency_package.version}'`
@@ -273,7 +270,7 @@ export async function checkPackages(
                         } else {
                             if (
                                 !versions.some(({version}) =>
-                                    satisfies(version, dependency.version)
+                                    semver(version, dependency.version)
                                 )
                             ) {
                                 const versions_string = versions
