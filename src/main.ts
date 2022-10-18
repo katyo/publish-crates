@@ -106,13 +106,11 @@ async function run(): Promise<void> {
                     env
                 }
                 if (dry_run) {
-                    const args_str = exec_args.join(' ')
-                    warning(
-                        `Skipping exec 'cargo ${args_str}' in '${package_info.path}' due to 'dry-run: true'`
-                    )
-                    warning(
-                        `Skipping awaiting when '${package_name} ${package_info.version}' will be available due to 'dry-run: true'`
-                    )
+                    exec_args.push('--dry-run')
+                    info(`Dry run publishing package '${package_name}'`)
+                    await exec('cargo', exec_args, exec_opts)
+                    await awaitCrateVersion(package_name, package_info.version)
+                    info(`Dry run publishing package '${package_name}' successful`)
                 } else {
                     info(`Publishing package '${package_name}'`)
                     await exec('cargo', exec_args, exec_opts)

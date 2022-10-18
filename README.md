@@ -24,7 +24,7 @@
 - `path` Sets path to crate or workspace ('.' by default)
 - `args` Extra arguments for `cargo publish` command
 - `registry-token` Cargo registry token (not used when `dry-run: true`)
-- `dry-run` Set to `true` to bypass exec `cargo publish`
+- `dry-run` Set to `true` to do a dry run exec of `cargo publish`
 - `check-repo` Set to `false` to bypass check local packages for modifications since last published version
 - `publish-delay` Optional delay in milliseconds applied after publishing each package before publishing others
 - `no-verify` Set to `true` to bypass cyclic dependency detection and cargo packaging verification (uses `--no-verify`)

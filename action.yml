@@ -18,7 +18,7 @@ inputs:
     description: 'Cargo registry token'
     default: ''
   dry-run:
-    description: 'Skip execution cargo publish'
+    description: 'Execute dry run of cargo publish'
     default: 'false'
   check-repo:
     description: 'Check repository consistency'
