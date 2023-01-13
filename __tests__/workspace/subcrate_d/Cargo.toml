@@ -1,0 +1,6 @@
+[package]
+name = "subcrate-d"
+version = { workspace = true }
+
+[dev-dependencies.subcrate-f]
+path = "../subcrate_f"

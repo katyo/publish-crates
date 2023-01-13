@@ -1,11 +1,15 @@
 [workspace]
 members = [
   "pkg-sys",
+  "pkg-skip",
   "pkg-build",
   "pkg-lib",
   "pkg-bin",
   'pkg-dev',
 ]
+
+[workspace.package]
+version = "0.1.0"
 
 [package]
 name = "pkg-all"
@@ -13,7 +17,15 @@ version = "0.1.0"
 
 [dependencies]
 pkg-lib = { version = "0.1.0", path = "./pkg-lib" }
+subcrate-d = { workspace = true, path = "../workspace/subcrate_d" }
+subcrate-e = { workspace = true, path = "../workspace/subcrate_e" }
+subcrate-f = { workspace = true, path = "../workspace/subcrate_f" }
 
 [dependencies.pkg-bin]
 version = "0.1.0"
 path = "./pkg-bin"
+
+[workspace.dependencies]
+subcrate-d = { version = "0.1.0", path = "./workspace/subcrate_d" }
+subcrate-e = { version = "0.1.0", path = "./workspace/subcrate_e" }
+subcrate-f = { version = "0.1.0", path = "./workspace/subcrate_f" }

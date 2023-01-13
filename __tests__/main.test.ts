@@ -3,22 +3,22 @@ import {findPackages, checkPackages, sortPackages} from '../src/package'
 import {githubHandle, lastCommitDate} from '../src/github'
 import {semver} from '../src/utils'
 import {join} from 'path'
-import {exec} from '@actions/exec'
 const pkg_dir = __dirname
 
 test('find packages', async () => {
     const packages = await findPackages(pkg_dir)
 
-    expect(Object.keys(packages).length).toBe(6)
+    expect(Object.keys(packages).length).toBe(9)
 
     const pkg_all = packages['pkg-all']
     const pkg_sys = packages['pkg-sys']
     const pkg_lib = packages['pkg-lib']
     const pkg_bin = packages['pkg-bin']
+    const subcrate_e = packages['subcrate-e']
 
     expect(pkg_all.path).toBe(pkg_dir)
     expect(pkg_all.version).toBe('0.1.0')
-    expect(Object.keys(pkg_all.dependencies).length).toBe(2)
+    expect(Object.keys(pkg_all.dependencies).length).toBe(5)
 
     expect(pkg_sys.path).toBe(join(pkg_dir, 'pkg-sys'))
     expect(pkg_sys.version).toBe('0.1.0')
@@ -31,6 +31,10 @@ test('find packages', async () => {
     expect(pkg_bin.path).toBe(join(pkg_dir, 'pkg-bin'))
     expect(pkg_bin.version).toBe('0.1.0')
     expect(Object.keys(pkg_bin.dependencies).length).toBe(3)
+
+    expect(subcrate_e.path).toBe(join(pkg_dir, 'workspace/subcrate_e'))
+    expect(subcrate_e.version).toBe('0.1.0')
+    expect(Object.keys(subcrate_e.dependencies).length).toBe(1)
 })
 
 test('check packages', async () => {
@@ -46,6 +50,9 @@ test('sort packages', async () => {
         'pkg-sys',
         'pkg-lib',
         'pkg-build',
+        'subcrate-d',
+        'subcrate-f',
+        'subcrate-e',
         'pkg-dev',
         'pkg-bin',
         'pkg-all'

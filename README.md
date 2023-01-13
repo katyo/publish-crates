@@ -13,6 +13,7 @@
 - Publishes updated crates in right order according to dependencies
 - Awaits when published crate will be available in registry before publishing crates which depends from it
 - Works fine in workspaces without cyclic dependencies
+- Support `{ workspace = true }` syntax in the `Cargo.toml`
 
 ## Unimplemented features
 

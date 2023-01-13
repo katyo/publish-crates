@@ -1,55 +1,30 @@
-import {dirname, join, normalize, relative, resolve} from 'path'
-import {parse} from '@iarna/toml'
-import {create as glob} from '@actions/glob'
+import {dirname, join, normalize, relative} from 'path'
+import {spawnSync} from 'child_process'
 
 import {GitHubHandle, lastCommitDate} from './github'
-import {readFile, semver, stat} from './utils'
+import {semver} from './utils'
 import {getCrateVersions} from './crates'
 
 interface RawDependencies {
-    [name: string]:
-        | string
-        | {
-              package?: string
-              version?: string
-              path?: string
-          }
+    name: string
+    kind: string | null
+    req: string
+    path?: string
+}
+
+interface Metadata {
+    packages: [RawManifest]
 }
 
 interface RawManifest {
-    workspace?: {
-        members?: string[]
-    }
-    package?: {
-        name?: string
-        version?: string
-        publish?: boolean
-    }
-    dependencies?: RawDependencies
-    'dev-dependencies'?: RawDependencies
-    'build-dependencies'?: RawDependencies
+    name?: string
+    manifest_path: string
+    version?: string
+    publish?: [string]
+    dependencies: [RawDependencies]
 }
 
 const manifest_filename = 'Cargo.toml'
-
-async function readManifest(path: string): Promise<RawManifest> {
-    try {
-        await stat(path)
-    } catch (error) {
-        throw new Error(`Manifest file '${path}' not found (${error})`)
-    }
-    let raw
-    try {
-        raw = await readFile(path, 'utf-8')
-    } catch (error) {
-        throw new Error(`Error when reading manifest file '${path}' (${error})`)
-    }
-    try {
-        return parse(raw)
-    } catch (error) {
-        throw new Error(`Error when parsing manifest file '${path}' (${error})`)
-    }
-}
 
 export interface Package {
     path: string
@@ -59,7 +34,7 @@ export interface Package {
 }
 
 export interface Dependency {
-    version: string
+    req: string
     path?: string
 }
 
@@ -79,93 +54,95 @@ export async function findPackages(
         ? base_path
         : join(base_path, manifest_filename)
     const path = dirname(manifest_path)
+    const command = `cargo`
+    const args = [
+        `metadata`,
+        `--no-deps`,
+        `--format-version`,
+        `1`,
+        `--manifest-path`,
+        `${manifest_path}`
+    ]
 
-    const manifest = await readManifest(manifest_path)
+    const exec = spawnSync(command, args)
 
-    if (typeof manifest.package === 'object') {
-        const {package: package_info} = manifest
+    const exec_error = exec.stderr.toString(`utf8`)
+
+    if (exec_error.length > 0) {
+        throw new Error(
+            `During "cargo metadata" execution got an error: '${exec_error}'`
+        )
+    }
+    const output = exec.stdout.toString(`utf8`)
+
+    let metadata: Metadata
+
+    try {
+        metadata = JSON.parse(output)
+    } catch (error) {
+        throw new Error(`Error when parsing manifest file '${path}' (${error})`)
+    }
+
+    for (const package_info of metadata.packages) {
         if (typeof package_info.name !== 'string') {
             throw new Error(`Missing package name at '${path}'`)
         }
         if (typeof package_info.version !== 'string') {
             throw new Error(`Missing package version at '${path}'`)
         }
-        if (package_info.publish !== false) {
+        // List of registries to which this package may be published.
+        // Publishing is unrestricted if null, and forbidden if an empty array.
+        if (!package_info.publish || package_info.publish.length > 0) {
             const dependencies: Dependencies = {}
 
-            for (const [dependency_type, manifest_dependencies] of [
-                ['normal', manifest.dependencies],
-                ['dev', manifest['dev-dependencies']],
-                ['build', manifest['build-dependencies']]
-            ]) {
-                if (typeof manifest_dependencies === 'object') {
-                    for (const name in manifest_dependencies) {
-                        const dependency = manifest_dependencies[name]
-                        if (typeof dependency === 'string') {
-                            dependencies[name] = {version: dependency}
-                        } else if (typeof dependency == 'object') {
-                            if (
-                                !dependency.version &&
-                                // normal and build deps require a version
-                                dependency_type !== 'dev'
-                            ) {
-                                throw new Error(
-                                    `Missing dependency '${name}' version field`
-                                )
-                            } else if (
-                                // throw an error if there is no path or version on dev-dependencies
-                                dependency_type === 'dev' &&
-                                !dependency.version &&
-                                !dependency.path
-                            ) {
-                                throw new Error(
-                                    `Missing dependency '${name}' version field`
-                                )
-                            } else if (dependency.version) {
-                                // only include package in dependency graph if version is specified
-                                const package_name =
-                                    typeof dependency.package === 'string'
-                                        ? dependency.package
-                                        : name
-                                dependencies[package_name] = {
-                                    version: dependency.version,
-                                    path: dependency.path
-                                }
-                            }
-                        }
+            for (const dependency of package_info.dependencies) {
+                const no_version = dependency.req === '*'
+                const kind = dependency.kind
+                const name = dependency.name
+
+                if (
+                    no_version &&
+                    // normal and build deps require a version
+                    kind !== 'dev'
+                ) {
+                    throw new Error(
+                        `Missing dependency '${name}' version field`
+                    )
+                } else if (
+                    // throw an error if there is no path or version on dev-dependencies
+                    kind === 'dev' &&
+                    no_version &&
+                    !dependency.path
+                ) {
+                    throw new Error(
+                        `Missing dependency '${name}' version field`
+                    )
+                } else if (!no_version) {
+                    // only include package in dependency graph if version is specified
+                    let dependency_path
+
+                    if (dependency.path) {
+                        dependency_path = relative(
+                            dirname(package_info.manifest_path),
+                            dependency.path
+                        )
+                    }
+
+                    dependencies[dependency.name] = {
+                        req: dependency.req,
+                        path: dependency_path
                     }
                 }
             }
 
             packages[package_info.name] = {
-                path,
+                path: dirname(
+                    join(path, relative(path, package_info.manifest_path))
+                ),
                 version: package_info.version,
                 dependencies
             }
         }
-    }
-
-    if (typeof manifest.workspace == 'object') {
-        const tasks: Promise<Packages>[] = []
-        const {workspace} = manifest
-        if (Array.isArray(workspace.members)) {
-            const globber = await glob(
-                workspace.members
-                    .map(member => join(path, member, manifest_filename))
-                    .join('\n')
-            )
-            const members_paths = await globber.glob()
-            const parent_path = resolve(path)
-            for (const member_path of members_paths) {
-                tasks.push(
-                    findPackages(
-                        join(path, relative(parent_path, member_path)),
-                        packages
-                    )
-                )
-            }
-        }
-        await Promise.all(tasks)
     }
 
     return packages
@@ -251,10 +228,10 @@ export async function checkPackages(
                         message: `Package '${package_name}' depends from internal '${dependency_name}' with path '${dependency_path}' but actual path is '${dependency_package.path}'`
                     })
                 }
-                if (!semver(dependency_package.version, dependency.version)) {
+                if (!semver(dependency_package.version, dependency.req)) {
                     errors.push({
                         kind: 'mismatch-intern-dep-version',
-                        message: `Package '${package_name}' depends from internal '${dependency_name}' with version '${dependency.version}' but actual version is '${dependency_package.version}'`
+                        message: `Package '${package_name}' depends from internal '${dependency_name}' with version '${dependency.req}' but actual version is '${dependency_package.version}'`
                     })
                 }
             } else {
@@ -270,7 +247,7 @@ export async function checkPackages(
                         } else {
                             if (
                                 !versions.some(({version}) =>
-                                    semver(version, dependency.version)
+                                    semver(version, dependency.req)
                                 )
                             ) {
                                 const versions_string = versions
@@ -278,7 +255,7 @@ export async function checkPackages(
                                     .join(', ')
                                 errors.push({
                                     kind: 'mismatch-extern-dep-version',
-                                    message: `Package '${package_name}' depends from external '${dependency_name}' with version '${dependency.version}' which does not satisfies any of '${versions_string}'`
+                                    message: `Package '${package_name}' depends from external '${dependency_name}' with version '${dependency.req}' which does not satisfies any of '${versions_string}'`
                                 })
                             }
                         }
