@@ -33,5 +33,5 @@ inputs:
     description: 'Exit the workflow gracefully if package does not have a new version to publish'
     default: 'false'
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/index.js'
