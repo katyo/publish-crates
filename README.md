@@ -3,6 +3,9 @@
 
 # Publish Rust crates using GitHub Actions
 
+The action is using [`cargo metadata`](https://doc.rust-lang.org/cargo/commands/cargo-metadata.html) with format version 
+`1` to collect the information about crates and workspace.
+
 ## Features
 
 - Reads manifests to get info about crates and dependencies
@@ -13,7 +16,8 @@
 - Publishes updated crates in right order according to dependencies
 - Awaits when published crate will be available in registry before publishing crates which depends from it
 - Works fine in workspaces without cyclic dependencies
-- Support `{ workspace = true }` syntax in the `Cargo.toml`
+- Support `{ workspace = true }` syntax in the `Cargo.toml`. [This](https://rust-lang.github.io/rfcs/2906-cargo-workspace-deduplicate.html)
+  feature was stabilized in Rust 1.64.
 
 ## Unimplemented features
 

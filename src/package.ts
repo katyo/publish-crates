@@ -1,5 +1,5 @@
 import {dirname, join, normalize, relative} from 'path'
-import {spawnSync} from 'child_process'
+import {exec} from '@actions/exec'
 
 import {GitHubHandle, lastCommitDate} from './github'
 import {semver} from './utils'
@@ -64,16 +64,25 @@ export async function findPackages(
         `${manifest_path}`
     ]
 
-    const exec = spawnSync(command, args)
+    let output = ''
+    let exec_error = ''
 
-    const exec_error = exec.stderr.toString(`utf8`)
+    await exec(command, args, {
+        listeners: {
+            stdout: (data: Buffer) => {
+                output += data.toString('utf8')
+            },
+            stderr: (data: Buffer) => {
+                exec_error += data.toString('utf8')
+            }
+        }
+    })
 
     if (exec_error.length > 0) {
         throw new Error(
             `During "cargo metadata" execution got an error: '${exec_error}'`
         )
     }
-    const output = exec.stdout.toString(`utf8`)
 
     let metadata: Metadata
 
@@ -128,7 +137,7 @@ export async function findPackages(
                         )
                     }
 
-                    dependencies[dependency.name] = {
+                    dependencies[name] = {
                         req: dependency.req,
                         path: dependency_path
                     }
