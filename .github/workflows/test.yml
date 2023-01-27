@@ -4,7 +4,7 @@ on: # rebuild any PRs and main branch changes
   pull_request:
   push:
     branches:
-      - main
+      - branch/v1
 
 jobs:
   build: # make sure build/ci work properly
@@ -44,7 +44,7 @@ jobs:
           check-repo: ${{ github.event_name == 'push' }}
 
   publish: # publish dependency-free release with only self-contained dist directory
-    if: github.repository == 'katyo/publish-crates' && github.event_name == 'push' && github.ref_name == 'main'
+    if: github.repository == 'katyo/publish-crates' && github.event_name == 'push' && github.ref_name == 'branch/v1'
     runs-on: ubuntu-latest
     needs:
       - build
