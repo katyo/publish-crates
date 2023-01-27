@@ -52,12 +52,12 @@ Basic usage (`Cargo.toml` sits in repository root):
 
 ```yaml
 steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: actions-rs/toolchain@v1
       with:
           toolchain: stable
           override: true
-    - uses: katyo/publish-crates@v1
+    - uses: katyo/publish-crates@v2
       with:
           registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 ```
@@ -66,12 +66,12 @@ Advanced usage (`Cargo.toml` sits in 'packages' subdir, and you would like to sk
 
 ```yaml
 steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: actions-rs/toolchain@v1
       with:
           toolchain: stable
           override: true
-    - uses: katyo/publish-crates@v1
+    - uses: katyo/publish-crates@v2
       with:
           path: './packages'
           args: --no-verify
@@ -82,12 +82,12 @@ Preventing failing on pull requests by disabling repository consistency check:
 
 ```yaml
 steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: actions-rs/toolchain@v1
       with:
           toolchain: stable
           override: true
-    - uses: katyo/publish-crates@v1
+    - uses: katyo/publish-crates@v2
       with:
           dry-run: true
           check-repo: ${{ github.event_name == 'push' }}
@@ -97,12 +97,12 @@ Prevent failing when there is no new version to publish:
 
 ```yaml
 steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: actions-rs/toolchain@v1
       with:
           toolchain: stable
           override: true
-    - uses: katyo/publish-crates@v1
+    - uses: katyo/publish-crates@v2
       with:
           registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
           ignore-unpublished-changes: true
