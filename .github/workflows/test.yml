@@ -65,11 +65,11 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add dist
           git commit -m "Added dist files"
-          git tag v1 -f
+          git tag v2 -f
       - name: Push dist
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: dist/v1
+          branch: dist/v2
           tags: true
           force: true
