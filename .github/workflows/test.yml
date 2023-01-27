@@ -44,7 +44,7 @@ jobs:
           check-repo: ${{ github.event_name == 'push' }}
 
   publish: # publish dependency-free release with only self-contained dist directory
-    if: github.repository == 'katyo/publish-crates' && github.event_name == 'push' && github.ref_name == 'main'
+    if: github.event_name == 'push' && github.ref_name == 'main'
     runs-on: ubuntu-latest
     needs:
       - build

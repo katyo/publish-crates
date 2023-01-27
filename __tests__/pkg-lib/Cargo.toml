@@ -9,6 +9,9 @@ lazy_static = "1.0"
 version = "0.1.0"
 path = "../pkg-sys"
 
+[dev-dependencies]
+lazy_static = "1.0"
+
 # test that local cyclic dev-deps are allowed using paths
 [dev-dependencies.pkg-dev]
 path = "../pkg-dev"
