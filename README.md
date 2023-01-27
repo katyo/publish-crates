@@ -52,7 +52,7 @@ Basic usage (`Cargo.toml` sits in repository root):
 
 ```yaml
 steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: actions-rs/toolchain@v1
       with:
           toolchain: stable
@@ -66,7 +66,7 @@ Advanced usage (`Cargo.toml` sits in 'packages' subdir, and you would like to sk
 
 ```yaml
 steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: actions-rs/toolchain@v1
       with:
           toolchain: stable
@@ -82,7 +82,7 @@ Preventing failing on pull requests by disabling repository consistency check:
 
 ```yaml
 steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: actions-rs/toolchain@v1
       with:
           toolchain: stable
@@ -97,7 +97,7 @@ Prevent failing when there is no new version to publish:
 
 ```yaml
 steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: actions-rs/toolchain@v1
       with:
           toolchain: stable
