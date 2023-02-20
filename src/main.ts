@@ -120,7 +120,7 @@ async function run(): Promise<void> {
                     if (publish_delay) {
                         await delay(publish_delay)
                     }
-                    await exec('cargo', ['update'], exec_opts)
+                    await exec('cargo', ['update', '--dry-run'], exec_opts)
                     info(`Package '${package_name}' published successfully`)
                 }
             }
