@@ -34,7 +34,7 @@
     "semver": "^7.3.7"
   },
   "devDependencies": {
-    "@types/jest": "^29.4.4",
+    "@types/jest": "^29.5.0",
     "@types/node": "^18.15.3",
     "@types/semver": "^7.3.9",
     "@typescript-eslint/parser": "^5.55.0",
