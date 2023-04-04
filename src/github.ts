@@ -29,22 +29,20 @@ export async function lastCommitDate(
         github,
         context: {
             repo: {owner, repo},
-            ref
+            sha
         }
     }: GitHubHandle,
     path: string
 ): Promise<Date> {
     let result: {
         repository: {
-            ref: {
-                target: {
-                    history: {
-                        edges: {
-                            node: {
-                                committedDate: string
-                            }
-                        }[]
-                    }
+            object: {
+                history: {
+                    edges: {
+                        node: {
+                            committedDate: string
+                        }
+                    }[]
                 }
             }
         }
@@ -53,16 +51,14 @@ export async function lastCommitDate(
     try {
         result = await github.graphql(
             `
-query lastCommitDate($owner: String!, $repo: String!, $ref: String!, $path: String!) {
+query lastCommitDate($owner: String!, $repo: String!, $sha: String!, $path: String!) {
     repository(owner: $owner, name: $repo) {
-        ref(qualifiedName: $ref) {
-            target {
-                ... on Commit {
-                    history(first: 1, path: $path) {
-                        edges {
-                            node {
-                                committedDate
-                            }
+        object(oid: $sha) {
+            ... on Commit {
+                history(first: 1, path: $path) {
+                    edges {
+                        node {
+                            committedDate
                         }
                     }
                 }
@@ -74,7 +70,7 @@ query lastCommitDate($owner: String!, $repo: String!, $ref: String!, $path: Stri
             {
                 owner,
                 repo,
-                ref,
+                sha,
                 path
             }
         )
@@ -84,7 +80,7 @@ query lastCommitDate($owner: String!, $repo: String!, $ref: String!, $path: Stri
         )
     }
 
-    const {edges} = result.repository.ref.target.history
+    const {edges} = result.repository.object.history
 
     if (edges.length !== 1) {
         throw new Error(`Unable to retrieve history for path '${path}'`)
