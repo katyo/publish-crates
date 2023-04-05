@@ -83,7 +83,7 @@ steps:
           dry-run: true
 ```
 
-Preventing failing on pull requests by disabling repository consistency check:
+Do all checks in both push and pull requests, but only publish on push:
 
 ```yaml
 steps:
@@ -94,8 +94,7 @@ steps:
           override: true
     - uses: katyo/publish-crates@v2
       with:
-          dry-run: true
-          check-repo: ${{ github.event_name == 'push' }}
+          dry-run: ${{ github.event_name != 'push' }}
 ```
 
 Prevent failing when there is no new version to publish:
