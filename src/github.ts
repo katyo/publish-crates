@@ -51,7 +51,7 @@ export async function lastCommitDate(
     try {
         result = await github.graphql(
             `
-query lastCommitDate($owner: String!, $repo: String!, $sha: String!, $path: String!) {
+query lastCommitDate($owner: String!, $repo: String!, $sha: GitObjectID!, $path: String!) {
     repository(owner: $owner, name: $repo) {
         object(oid: $sha) {
             ... on Commit {
