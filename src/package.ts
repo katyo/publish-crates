@@ -67,7 +67,7 @@ export async function findPackages(
     let output = ''
     let exec_error = ''
 
-    await exec(command, args, {
+    const exit_code = await exec(command, args, {
         listeners: {
             stdout: (data: Buffer) => {
                 output += data.toString('utf8')
@@ -78,7 +78,7 @@ export async function findPackages(
         }
     })
 
-    if (exec_error.length > 0) {
+    if (exit_code !== 0) {
         throw new Error(
             `During "cargo metadata" execution got an error: '${exec_error}'`
         )
