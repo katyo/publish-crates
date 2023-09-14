@@ -4,6 +4,7 @@ import {
     getInput,
     info,
     setFailed,
+    setOutput,
     warning
 } from '@actions/core'
 import {ExecOptions, exec} from '@actions/exec'
@@ -43,6 +44,8 @@ async function run(): Promise<void> {
     }
 
     const github = githubHandle(token)
+
+    const published: {name: string; version: string}[] = []
 
     try {
         info(`Searching cargo packages at '${path}'`)
@@ -123,11 +126,16 @@ async function run(): Promise<void> {
                     await exec('cargo', ['update', '--dry-run'], exec_opts)
                     info(`Package '${package_name}' published successfully`)
                 }
+                published.push({
+                    name: package_name,
+                    version: package_info.version
+                })
             }
         }
     } catch (err) {
         setFailed(`${err}`)
     }
+    setOutput('published', published)
 }
 
 run()
