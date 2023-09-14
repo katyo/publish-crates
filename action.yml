@@ -32,6 +32,9 @@ inputs:
   ignore-unpublished-changes:
     description: 'Exit the workflow gracefully if package does not have a new version to publish'
     default: 'false'
+outputs:
+  published:
+    description: 'JSON formatted string with published crates as list of objects with `name` and `version` fields'
 runs:
   using: 'node16'
   main: 'dist/index.js'

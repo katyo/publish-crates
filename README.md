@@ -3,7 +3,7 @@
 
 # Publish Rust crates using GitHub Actions
 
-The action is using [`cargo metadata`](https://doc.rust-lang.org/cargo/commands/cargo-metadata.html) with format version 
+The action is using [`cargo metadata`](https://doc.rust-lang.org/cargo/commands/cargo-metadata.html) with format version
 `1` to collect the information about crates and workspace.
 
 ## Features
@@ -50,6 +50,20 @@ to `false` too.
 Usually you don't need to set `publish-delay` because this action check availability of previously published
 packages before publishing other but in some cases it may help work around __crates.io__ inconsistency
 problems.
+
+## Outputs
+
+- `published` JSON formatted string with published crates as array of objects with `name` and `version` fields.
+
+You may want to use it with [`fromJSON`][fromJSON] function and object filters syntax
+[1][object filters-join], [2][object filters-contains].
+
+__This works whether "dry-run" is enabled or not.__
+That means that when `dry-run: true` you will get packages that could have been published.
+
+[fromJSON]: https://docs.github.com/en/actions/learn-github-actions/expressions#fromjson
+[object filters-join]: https://docs.github.com/en/actions/learn-github-actions/expressions#example-of-join
+[object filters-contains]: https://docs.github.com/en/actions/learn-github-actions/expressions#example-using-an-object-filter
 
 ## Usage examples
 
@@ -111,3 +125,19 @@ steps:
           registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
           ignore-unpublished-changes: true
 ```
+
+Output usage:
+
+```yaml
+    - uses: katyo/publish-crates@v2
+      id: publish-crates
+      with:
+          registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+    - name: if my-crate published
+          if: fromJSON(steps.publish-crates.outputs.published).*
+          run: |
+            LIST="${{ join(fromJSON(steps.publish-crates.outputs.published).*.name, ', ')) }}"
+            echo "Published crates: $LIST"
+```
+**NOTE**: This is also works if `dry-run` is enabled. It explained in [Outputs](#outputs).
