@@ -1,4 +1,4 @@
-name: 'publish crates'
+name: 'publish crates workspace'
 description: 'Publish Rust crates on crates.io'
 author: 'K. <kayo@illumium.org>'
 branding:
