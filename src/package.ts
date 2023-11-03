@@ -112,7 +112,8 @@ export async function findPackages(
                 if (
                     no_version &&
                     // normal and build deps require a version
-                    kind !== 'dev'
+                    kind !== 'dev' &&
+                    !dependency.path
                 ) {
                     throw new Error(
                         `Missing dependency '${name}' version field`
