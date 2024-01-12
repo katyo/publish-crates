@@ -2,7 +2,7 @@ import {dirname, join, normalize, relative} from 'path'
 import {exec} from '@actions/exec'
 
 import {GitHubHandle, lastCommitDate} from './github'
-import {semver} from './utils'
+import {isver, semver} from './utils'
 import {getCrateVersions} from './crates'
 
 type RawDependencyKind = 'dev' | 'build' | null
@@ -154,6 +154,7 @@ export interface CheckPackageError {
         | 'unable-to-get-commit-date'
         | 'has-unpublished-changes'
         | 'not-a-workspace-member'
+        | 'invalid-package-version'
         | 'mismatch-intern-dep-path'
         | 'mismatch-intern-dep-version'
         | 'unable-to-find-extern-dep'
@@ -170,6 +171,14 @@ export async function checkPackages(
 
     for (const package_name in packages) {
         const package_info = packages[package_name]
+
+        if (!isver(package_info.version)) {
+            errors.push({
+                name: package_name,
+                kind: 'invalid-package-version',
+                message: `Invalid package '${package_name}' version: '${package_info.version}'`
+            })
+        }
 
         tasks.push(
             (async () => {
