@@ -27,5 +27,5 @@ path = "./pkg-bin"
 
 [workspace.dependencies]
 subcrate-d = { version = "0.1.0", path = "./workspace/subcrate_d" }
-subcrate-e = { version = "0.1.0", path = "./workspace/subcrate_e" }
-subcrate-f = { version = "0.1.0", path = "./workspace/subcrate_f" }
+subcrate-e = { version = "*", path = "./workspace/subcrate_e" }
+subcrate-f = { path = "./workspace/subcrate_f" }

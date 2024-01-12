@@ -5,9 +5,11 @@ import {GitHubHandle, lastCommitDate} from './github'
 import {semver} from './utils'
 import {getCrateVersions} from './crates'
 
+type RawDependencyKind = 'dev' | 'build' | null
+
 interface RawDependencies {
     name: string
-    kind: string | null
+    kind: RawDependencyKind
     req: string
     path?: string
 }
@@ -33,7 +35,10 @@ export interface Package {
     published?: boolean
 }
 
+export type DependencyKind = RawDependencyKind
+
 export interface Dependency {
+    kind: DependencyKind
     req: string
     path?: string
 }
@@ -97,7 +102,9 @@ export async function findPackages(
             throw new Error(`Missing package name at '${path}'`)
         }
         if (typeof package_info.version !== 'string') {
-            throw new Error(`Missing package version at '${path}'`)
+            throw new Error(
+                `Missing package '${package_info.name}' version at '${path}'`
+            )
         }
         // List of registries to which this package may be published.
         // Publishing is unrestricted if null, and forbidden if an empty array.
@@ -105,42 +112,26 @@ export async function findPackages(
             const dependencies: Dependencies = {}
 
             for (const dependency of package_info.dependencies) {
-                const no_version = dependency.req === '*'
-                const kind = dependency.kind
-                const name = dependency.name
-
                 if (
-                    no_version &&
-                    // normal and build deps require a version
-                    kind !== 'dev'
+                    typeof dependency.path != 'string' &&
+                    dependency.req === '*'
                 ) {
                     throw new Error(
-                        `Missing dependency '${name}' version field`
+                        `Missing external dependency '${dependency.name}' version requirement for package '${package_info.name}' at '${path}'`
                     )
-                } else if (
-                    // throw an error if there is no path or version on dev-dependencies
-                    kind === 'dev' &&
-                    no_version &&
-                    !dependency.path
-                ) {
-                    throw new Error(
-                        `Missing dependency '${name}' version field`
-                    )
-                } else if (!no_version) {
-                    // only include package in dependency graph if version is specified
-                    let dependency_path
+                }
 
-                    if (dependency.path) {
-                        dependency_path = relative(
-                            dirname(package_info.manifest_path),
-                            dependency.path
-                        )
-                    }
-
-                    dependencies[name] = {
-                        req: dependency.req,
-                        path: dependency_path
-                    }
+                // only include package in dependency graph if version or path is specified
+                dependencies[dependency.name] = {
+                    kind: dependency.kind,
+                    req: dependency.req,
+                    path:
+                        typeof dependency.path == 'string'
+                            ? relative(
+                                  dirname(package_info.manifest_path),
+                                  dependency.path
+                              )
+                            : undefined
                 }
             }
 
@@ -292,7 +283,8 @@ export function sortPackages(packages: Packages): string[] {
                 .filter(
                     ([dependency_name, dependency]) =>
                         !!dependency.path &&
-                        !sorted_names.includes(dependency_name)
+                        !sorted_names.includes(dependency_name) &&
+                        dependency.kind !== 'dev'
                 )
                 .map(([dependency_name]) => dependency_name)
             if (unresolved_internal_dependencies.length === 0) {

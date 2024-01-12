@@ -1,6 +1,6 @@
 [package]
 name = "subcrate-f"
-version = { workspace = true }
+version.workspace = true
 
 [dependencies]
 lazy_static = "1.0"
