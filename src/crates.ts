@@ -61,7 +61,7 @@ export async function getCrateVersions(
                 version: num,
                 created: new Date(created_at),
                 dl_path
-            } as Version)
+            }) as Version
     )
 }
 

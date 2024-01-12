@@ -50,6 +50,7 @@ async function run(): Promise<void> {
     try {
         info(`Searching cargo packages at '${path}'`)
         const packages = await findPackages(path)
+        info(JSON.stringify(packages, null, '  '))
         const package_names = Object.keys(packages).join(', ')
         info(`Found packages: ${package_names}`)
 
@@ -120,7 +121,7 @@ async function run(): Promise<void> {
                     info(`Publishing package '${package_name}'`)
                     await exec('cargo', exec_args, exec_opts)
                     await awaitCrateVersion(package_name, package_info.version)
-                    if (publish_delay) {
+                    if (typeof publish_delay == 'number') {
                         await delay(publish_delay)
                     }
                     await exec('cargo', ['update', '--dry-run'], exec_opts)

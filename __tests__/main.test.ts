@@ -26,7 +26,7 @@ test('find packages', async () => {
 
     expect(pkg_lib.path).toBe(join(pkg_dir, 'pkg-lib'))
     expect(pkg_lib.version).toBe('0.1.0')
-    expect(Object.keys(pkg_lib.dependencies).length).toBe(2)
+    expect(Object.keys(pkg_lib.dependencies).length).toBe(3)
 
     expect(pkg_bin.path).toBe(join(pkg_dir, 'pkg-bin'))
     expect(pkg_bin.version).toBe('0.1.0')
@@ -34,7 +34,7 @@ test('find packages', async () => {
 
     expect(subcrate_e.path).toBe(join(pkg_dir, 'workspace/subcrate_e'))
     expect(subcrate_e.version).toBe('0.1.0')
-    expect(Object.keys(subcrate_e.dependencies).length).toBe(1)
+    expect(Object.keys(subcrate_e.dependencies).length).toBe(2)
 })
 
 test('check packages', async () => {
@@ -50,11 +50,11 @@ test('sort packages', async () => {
         'pkg-sys',
         'pkg-lib',
         'pkg-build',
+        'pkg-bin',
         'subcrate-d',
         'subcrate-f',
         'subcrate-e',
         'pkg-dev',
-        'pkg-bin',
         'pkg-all'
     ])
 })
