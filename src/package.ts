@@ -149,6 +149,7 @@ export async function findPackages(
 }
 
 export interface CheckPackageError {
+    name: string
     kind:
         | 'unable-to-get-commit-date'
         | 'has-unpublished-changes'
@@ -188,6 +189,7 @@ export async function checkPackages(
                             )
                         } catch (error) {
                             errors.push({
+                                name: package_name,
                                 kind: 'unable-to-get-commit-date',
                                 message: `Unable to determine latest modification time for local package '${package_name}' due to: '${error}'`
                             })
@@ -197,6 +199,7 @@ export async function checkPackages(
                             last_changes_date.getTime() > version_date.getTime()
                         ) {
                             errors.push({
+                                name: package_name,
                                 kind: 'has-unpublished-changes',
                                 message: `It seems package '${package_name}' modified since '${package_info.version}' so new version should be published`
                             })
@@ -215,6 +218,7 @@ export async function checkPackages(
                 const dependency_package = packages[dependency_name]
                 if (!dependency_package) {
                     errors.push({
+                        name: package_name,
                         kind: 'not-a-workspace-member',
                         message: `Package '${package_name}' dependes from internal '${dependency_name}' which is not a workspace member. Listed workspace members only will be published`
                     })
@@ -224,12 +228,14 @@ export async function checkPackages(
                 )
                 if (dependency_path !== dependency_package.path) {
                     errors.push({
+                        name: package_name,
                         kind: 'mismatch-intern-dep-path',
                         message: `Package '${package_name}' depends from internal '${dependency_name}' with path '${dependency_path}' but actual path is '${dependency_package.path}'`
                     })
                 }
                 if (!semver(dependency_package.version, dependency.req)) {
                     errors.push({
+                        name: package_name,
                         kind: 'mismatch-intern-dep-version',
                         message: `Package '${package_name}' depends from internal '${dependency_name}' with version '${dependency.req}' but actual version is '${dependency_package.version}'`
                     })
@@ -241,6 +247,7 @@ export async function checkPackages(
                         const versions = await getCrateVersions(dependency_name)
                         if (!versions) {
                             errors.push({
+                                name: package_name,
                                 kind: 'unable-to-find-extern-dep',
                                 message: `Package '${package_name}' depends from external '${dependency_name}' which does not published on crates.io`
                             })
@@ -254,6 +261,7 @@ export async function checkPackages(
                                     .map(({version}) => version)
                                     .join(', ')
                                 errors.push({
+                                    name: package_name,
                                     kind: 'mismatch-extern-dep-version',
                                     message: `Package '${package_name}' depends from external '${dependency_name}' with version '${dependency.req}' which does not satisfies any of '${versions_string}'`
                                 })

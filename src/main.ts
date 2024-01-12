@@ -85,8 +85,16 @@ async function run(): Promise<void> {
                 return
             }
 
+            const packages_with_errors = package_errors
+                .map(({name}) => name)
+                .filter((name, index, errors) => errors.indexOf(name) === index)
+
             throw new Error(
-                `${package_errors.length} packages consistency error(s) found`
+                `Found ${
+                    packages_with_errors.length
+                } packages with consistency errors: ${packages_with_errors.join(
+                    ' '
+                )}`
             )
         }
 
