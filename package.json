@@ -47,6 +47,6 @@
     "prettier": "3.2.2",
     "ts-jest": "^29.0.5",
     "typescript": "^5.0.4",
-    "webpack": "^5.80.0"
+    "webpack": "^5.90.0"
   }
 }
