@@ -222,6 +222,9 @@ export async function checkPackages(
 
         for (const dependency_name in package_info.dependencies) {
             const dependency = package_info.dependencies[dependency_name]
+            if (dependency.kind === 'dev') {
+                continue
+            }
             if (dependency.path) {
                 // internal dependency
                 const dependency_package = packages[dependency_name]
@@ -229,8 +232,9 @@ export async function checkPackages(
                     errors.push({
                         name: package_name,
                         kind: 'not-a-workspace-member',
-                        message: `Package '${package_name}' dependes from internal '${dependency_name}' which is not a workspace member. Listed workspace members only will be published`
+                        message: `Package '${package_name}' depends from internal '${dependency_name}' which is not a workspace member. Listed workspace members only will be published`
                     })
+                    continue
                 }
                 const dependency_path = normalize(
                     join(package_info.path, dependency.path)
@@ -258,7 +262,7 @@ export async function checkPackages(
                             errors.push({
                                 name: package_name,
                                 kind: 'unable-to-find-extern-dep',
-                                message: `Package '${package_name}' depends from external '${dependency_name}' which does not published on crates.io`
+                                message: `Package '${package_name}' depends from external '${dependency_name}' which is not published on crates.io`
                             })
                         } else {
                             if (
@@ -272,7 +276,7 @@ export async function checkPackages(
                                 errors.push({
                                     name: package_name,
                                     kind: 'mismatch-extern-dep-version',
-                                    message: `Package '${package_name}' depends from external '${dependency_name}' with version '${dependency.req}' which does not satisfies any of '${versions_string}'`
+                                    message: `Package '${package_name}' depends from external '${dependency_name}' with version '${dependency.req}' which does not satisfy any of '${versions_string}'`
                                 })
                             }
                         }
