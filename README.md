@@ -137,7 +137,7 @@ Output usage:
     - name: if my-crate published
           if: fromJSON(steps.publish-crates.outputs.published).*
           run: |
-            LIST="${{ join(fromJSON(steps.publish-crates.outputs.published).*.name, ', ')) }}"
+            LIST="${{ join(fromJSON(steps.publish-crates.outputs.published).*.name, ', ') }}"
             echo "Published crates: $LIST"
 ```
 **NOTE**: This is also works if `dry-run` is enabled. It explained in [Outputs](#outputs).
