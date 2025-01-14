@@ -65,6 +65,9 @@ async function run(): Promise<void> {
             package_errors = package_errors.filter(
                 ({kind}) => kind !== 'unable-to-get-commit-date'
             )
+            package_errors = package_errors.filter(
+                ({kind}) => kind !== 'has-unpublished-changes'
+            )
         }
 
         if (package_errors.length > 0) {
